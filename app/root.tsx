@@ -1,0 +1,58 @@
+import { Links, Meta, Outlet, Scripts, ScrollRestoration, Link, isRouteErrorResponse, useRouteError } from "@remix-run/react";
+
+export function Layout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <Meta />
+        <Links />
+      </head>
+      <body>
+        <header style={{ padding: 12, borderBottom: '1px solid #eee' }}>
+          <nav style={{ display: 'flex', gap: 12 }}>
+            <Link to="/">Home</Link>
+          </nav>
+        </header>
+        <main>{children}</main>
+        <ScrollRestoration />
+        <Scripts />
+      </body>
+    </html>
+  );
+}
+
+export default function App() {
+  return <Outlet />;
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError();
+  if (isRouteErrorResponse(error)) {
+    return (
+      <html>
+        <head>
+          <title>{error.status} {error.statusText}</title>
+        </head>
+        <body>
+          <h1>{error.status} {error.statusText}</h1>
+          <p>{error.data as any}</p>
+          <Scripts />
+        </body>
+      </html>
+    );
+  }
+  return (
+    <html>
+      <head>
+        <title>App Error</title>
+      </head>
+      <body>
+        <h1>Something went wrong</h1>
+        <pre>{String(error)}</pre>
+        <Scripts />
+      </body>
+    </html>
+  );
+}
