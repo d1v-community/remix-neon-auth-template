@@ -5,6 +5,8 @@ const envSchema = z.object({
   DATABASE_URL: z.string().url(),
   APP_URL: z.string().url().default("http://localhost:5173"),
   LOG_LEVEL: z.string().default("info"),
+  RESEND_API_KEY: z.string().optional(),
+  JWT_SECRET: z.string().default("your-secret-key-change-in-production"),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -24,6 +26,8 @@ export const env = {
   DATABASE_URL: process.env.DATABASE_URL!,
   APP_URL: parsed.success ? parsed.data.APP_URL : process.env.APP_URL ?? "http://localhost:5173",
   LOG_LEVEL: process.env.LOG_LEVEL ?? "info",
+  RESEND_API_KEY: parsed.success ? parsed.data.RESEND_API_KEY : process.env.RESEND_API_KEY,
+  JWT_SECRET: parsed.success ? parsed.data.JWT_SECRET : (process.env.JWT_SECRET ?? "your-secret-key-change-in-production"),
 };
 
 export const isProd = env.NODE_ENV === "production";

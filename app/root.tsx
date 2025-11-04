@@ -1,4 +1,16 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration, Link, isRouteErrorResponse, useRouteError } from "@remix-run/react";
+import tailwindStyles from "./tailwind.css?url";
+
+export const links = () => [
+  { rel: "stylesheet", href: tailwindStyles },
+];
+
+export const meta = () => {
+  return [
+    { title: "Remix + Neon Auth" },
+    { name: "description", content: "Email verification login with Remix and Neon" },
+  ];
+};
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -10,12 +22,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        <header style={{ padding: 12, borderBottom: '1px solid #eee' }}>
-          <nav style={{ display: 'flex', gap: 12 }}>
-            <Link to="/">Home</Link>
-          </nav>
-        </header>
-        <main>{children}</main>
+        {children}
         <ScrollRestoration />
         <Scripts />
       </body>

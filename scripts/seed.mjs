@@ -11,13 +11,10 @@ const client = Object.assign(
 const db = drizzle(client);
 
 const userId = crypto.randomUUID();
-const orgId = crypto.randomUUID();
 
 async function main() {
   await db.execute(sql`insert into users (id, username, display_name, email) values (${userId}, 'demo', 'Demo User', 'demo@example.com') on conflict (id) do nothing`);
-  await db.execute(sql`insert into organizations (id, name) values (${orgId}, 'Demo Org') on conflict (id) do nothing`);
-  await db.execute(sql`insert into memberships (user_id, org_id, role) values (${userId}, ${orgId}, 'owner') on conflict (user_id, org_id) do nothing`);
-  console.log('Seed complete:', { userId, orgId });
+  console.log('Seed complete:', { userId });
 }
 
 main().catch((e) => {

@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { neon } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-http';
-import { migrate } from 'drizzle-orm/neon-http/migrator';
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
 
 const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) {
@@ -10,11 +10,25 @@ if (!databaseUrl) {
 }
 
 const neonClient = neon(databaseUrl);
-const client = Object.assign(
-  (text, params, options) => neonClient.query(text, params, options),
-  { transaction: neonClient.transaction?.bind(neonClient) },
-);
-const db = drizzle(client);
 
-await migrate(db, { migrationsFolder: 'drizzle' });
-console.log('Migrations applied');
+// Execute migration file manually
+try {
+  const migrationFile = resolve('drizzle', '0000_init.sql');
+  const sql = readFileSync(migrationFile, 'utf-8');
+
+  // Split SQL into individual statements
+  const statements = sql
+    .split(';')
+    .map(stmt => stmt.trim())
+    .filter(stmt => stmt.length > 0);
+
+  // Execute each statement
+  for (const stmt of statements) {
+    await neonClient.query(stmt);
+  }
+
+  console.log('Migration applied successfully');
+} catch (error) {
+  console.error('Migration failed:', error);
+  process.exit(1);
+}
