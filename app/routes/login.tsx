@@ -1,5 +1,16 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "@remix-run/react";
+import type { LoaderFunctionArgs } from "@remix-run/node";
+import { redirect } from "@remix-run/node";
+import { getUserFromRequest } from "~/utils/auth.server";
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  const user = await getUserFromRequest(request);
+  if (user) {
+    return redirect("/");
+  }
+  return null;
+}
 
 export default function Login() {
   const navigate = useNavigate();
@@ -8,6 +19,24 @@ export default function Login() {
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [devCode, setDevCode] = useState<string | null>(null);
+  const [info, setInfo] = useState("");
+
+  // Client-side guard: if token exists and is valid, redirect
+  useEffect(() => {
+    try {
+      const token = localStorage.getItem("auth-token");
+      if (!token) return;
+      fetch("/api/auth/me")
+        .then((r) => r.json())
+        .then((d) => {
+          if (d?.authenticated) {
+            navigate("/", { replace: true });
+          }
+        })
+        .catch(() => {});
+    } catch {}
+  }, [navigate]);
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,6 +54,15 @@ export default function Login() {
 
       if (!data.success) {
         throw new Error(data.error || "Failed to send code");
+      }
+
+      // Show development code or success info
+      if (data.dev && data.code) {
+        setDevCode(String(data.code));
+        setInfo("Development mode: your verification code is shown below.");
+      } else {
+        setDevCode(null);
+        setInfo("Verification code sent. Please check your email.");
       }
 
       setStep("code");
@@ -66,6 +104,8 @@ export default function Login() {
     setStep("email");
     setCode("");
     setError("");
+    setInfo("");
+    setDevCode(null);
   };
 
   return (
@@ -116,6 +156,21 @@ export default function Login() {
                 </p>
                 <p className="font-medium text-gray-900">{email}</p>
               </div>
+
+              {info && (
+                <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg">
+                  {info}
+                </div>
+              )}
+
+              {devCode && (
+                <div className="bg-indigo-50 border border-indigo-200 text-indigo-800 px-4 py-3 rounded-lg">
+                  <p className="mb-1 font-medium">Development mode</p>
+                  <p>
+                    Your verification code is: <span className="font-mono font-semibold">{devCode}</span>
+                  </p>
+                </div>
+              )}
 
               <div>
                 <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-2">

@@ -46,7 +46,7 @@ export async function sendVerificationEmail(email: string, code: string) {
 
   try {
     const result = await resend.emails.send({
-      from: "Auth <auth@yourdomain.com>",
+      from: "D1V Auth <send@dontreply.d1v.xyz>",
       to: [email],
       subject: "Your verification code",
       html: `

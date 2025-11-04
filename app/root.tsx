@@ -38,26 +38,36 @@ export function ErrorBoundary() {
   const error = useRouteError();
   if (isRouteErrorResponse(error)) {
     return (
-      <html>
+      <html lang="en">
         <head>
-          <title>{error.status} {error.statusText}</title>
+          <meta charSet="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <Meta />
+          <Links />
+          <title>{`${error.status} ${error.statusText}`}</title>
         </head>
         <body>
           <h1>{error.status} {error.statusText}</h1>
           <p>{error.data as any}</p>
+          <ScrollRestoration />
           <Scripts />
         </body>
       </html>
     );
   }
   return (
-    <html>
+    <html lang="en">
       <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <Meta />
+        <Links />
         <title>App Error</title>
       </head>
       <body>
         <h1>Something went wrong</h1>
         <pre>{String(error)}</pre>
+        <ScrollRestoration />
         <Scripts />
       </body>
     </html>

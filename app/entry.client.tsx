@@ -7,6 +7,10 @@
 import { RemixBrowser } from "@remix-run/react";
 import { startTransition, StrictMode } from "react";
 import { hydrateRoot } from "react-dom/client";
+import { installAuthFetchInterceptor } from "~/utils/fetch.client";
+
+// Install fetch interceptor before hydration to cover early requests
+installAuthFetchInterceptor();
 
 startTransition(() => {
   hydrateRoot(

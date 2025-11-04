@@ -25,6 +25,17 @@ export function verifyToken(token: string): TokenPayload | null {
 export function getTokenFromRequest(request: Request): string | null {
   const authHeader = request.headers.get("Authorization");
   if (!authHeader) {
+    // Try cookie fallback when Authorization is missing
+    const cookie = request.headers.get("Cookie");
+    if (!cookie) return null;
+    // Simple cookie parsing for auth-token
+    const parts = cookie.split(/;\s*/);
+    for (const part of parts) {
+      const [k, ...rest] = part.split("=");
+      if (k === "auth-token") {
+        return rest.join("=") || null;
+      }
+    }
     return null;
   }
 

@@ -23,8 +23,12 @@ export default function Index() {
   const { version, user } = useLoaderData<typeof loader>();
 
   const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    window.location.reload();
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } finally {
+      try { localStorage.removeItem("auth-token"); } catch {}
+      window.location.reload();
+    }
   };
 
   return (

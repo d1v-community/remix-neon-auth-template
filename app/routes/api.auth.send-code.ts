@@ -2,6 +2,7 @@ import type { ActionFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { z } from "zod";
 import { generateVerificationCode, sendVerificationEmail } from "~/services/verification.server";
+import { isProd } from "~/utils/env.server";
 
 const requestSchema = z.object({
   email: z.string().email(),
@@ -13,12 +14,21 @@ export async function action({ request }: ActionFunctionArgs) {
     const { email } = requestSchema.parse(body);
 
     const code = await generateVerificationCode(email);
-    await sendVerificationEmail(email, code);
 
-    return json(
-      { success: true, message: "Verification code sent" },
-      { status: 200 }
-    );
+    if (isProd) {
+      await sendVerificationEmail(email, code);
+      return json(
+        { success: true, message: "Verification code sent" },
+        { status: 200 }
+      );
+    } else {
+      // In development, don't actually send email; return the code for UI hint
+      console.log(`[DEV] Verification code for ${email}: ${code}`);
+      return json(
+        { success: true, message: "Verification code generated", dev: true, code },
+        { status: 200 }
+      );
+    }
   } catch (error) {
     console.error("Send code error:", error);
 
