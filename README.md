@@ -44,7 +44,7 @@ cd remix-neon-auth
 
 2. **Install dependencies**
 ```bash
-npm install
+pnpm install
 ```
 
 3. **Configure environment variables**
@@ -62,12 +62,12 @@ APP_URL=http://localhost:5173
 
 4. **Set up the database**
 ```bash
-npm run db:migrate
+pnpm run db:migrate
 ```
 
 5. **Start the development server**
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 Visit [http://localhost:5173](http://localhost:5173)
@@ -177,21 +177,21 @@ Then create a new migration:
 ```bash
 cp drizzle/0000_init.sql drizzle/0001_new_feature.sql
 # Edit the new migration file
-npm run db:migrate
+pnpm run db:migrate
 ```
 
 ## 🛠️ Available Scripts
 
 ```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run start        # Start production server
-npm run typecheck    # Run TypeScript checks
-npm run lint         # Run ESLint
+pnpm run dev          # Start development server
+pnpm run build        # Build for production
+pnpm run start        # Start production server
+pnpm run typecheck    # Run TypeScript checks
+pnpm run lint         # Run ESLint
 
-npm run db:migrate   # Apply database migrations
-npm run db:migrate:api  # Apply migrations via Neon API
-npm run db:seed      # Seed database with demo data
+pnpm run db:migrate   # Apply database migrations
+pnpm run db:migrate:api  # Apply migrations via Neon API
+pnpm run db:seed      # Seed database with demo data
 ```
 
 ## 🚢 Deployment
@@ -215,11 +215,11 @@ npm run db:seed      # Seed database with demo data
 FROM node:20-alpine
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+RUN pnpm install
 COPY . .
-RUN npm run build
+RUN pnpm run build
 EXPOSE 3000
-CMD ["npm", "start"]
+CMD ["pnpm", "start"]
 ```
 
 ## 🔒 Security Considerations
