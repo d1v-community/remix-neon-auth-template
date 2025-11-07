@@ -30,8 +30,10 @@ export function installAuthFetchInterceptor(options?: {
 
       const sameOrigin = urlObj.origin === window.location.origin;
       const isApi = urlObj.pathname.startsWith(pathPrefix);
+      // Remix data requests generally include the _data search param
+      const isRemixData = urlObj.searchParams.has("_data");
 
-      if (sameOrigin && isApi) {
+      if (sameOrigin && (isApi || isRemixData)) {
         const token = localStorage.getItem(storageKey);
 
         if (token) {
@@ -61,4 +63,3 @@ export function installAuthFetchInterceptor(options?: {
 
   window.__authFetchInstalled = true;
 }
-

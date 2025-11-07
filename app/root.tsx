@@ -1,4 +1,5 @@
-import { Links, Meta, Outlet, Scripts, ScrollRestoration, Link, isRouteErrorResponse, useRouteError } from "@remix-run/react";
+import { Links, Meta, Outlet, Scripts, ScrollRestoration, Link, isRouteErrorResponse, useRouteError, useRevalidator } from "@remix-run/react";
+import { useEffect } from "react";
 import tailwindStyles from "./tailwind.css?url";
 
 export const links = () => [
@@ -31,6 +32,27 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  const revalidator = useRevalidator();
+
+  // If SSR didn't include auth cookie (e.g., iframe 3PC blocked)
+  // but localStorage has a token, refresh route loaders with Authorization.
+  useEffect(() => {
+    try {
+      const token = localStorage.getItem("auth-token");
+      if (!token) return;
+      fetch("/api/auth/me")
+        .then((r) => r.ok ? r.json() : null)
+        .then((d) => {
+          if (d && d.authenticated) {
+            revalidator.revalidate();
+          }
+        })
+        .catch(() => {});
+    } catch {}
+    // run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return <Outlet />;
 }
 

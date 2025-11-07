@@ -92,6 +92,25 @@ export default function Login() {
       }
 
       localStorage.setItem("auth-token", data.token);
+
+      // Attempt to request Storage Access for third-party iframes (Safari/Chrome SAA)
+      try {
+        const anyDoc = document as any;
+        if (typeof anyDoc.hasStorageAccess === "function") {
+          const hasAccess = await anyDoc.hasStorageAccess();
+          if (!hasAccess && typeof anyDoc.requestStorageAccess === "function") {
+            await anyDoc.requestStorageAccess();
+          }
+        }
+      } catch {
+        // ignore SAA failures
+      }
+
+      // Sync server cookie from Authorization if cookies were previously blocked
+      try {
+        await fetch("/api/auth/sync-cookie", { method: "POST" });
+      } catch {}
+
       navigate("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Verification failed");
