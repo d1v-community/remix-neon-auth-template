@@ -1,5 +1,4 @@
 import type { ActionFunctionArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
 import { z } from "zod";
 import { verifyCode, findOrCreateUserByEmail } from "~/services/verification.server";
 import { generateToken } from "~/services/jwt.server";
@@ -18,7 +17,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const isValid = await verifyCode(email, code);
 
     if (!isValid) {
-      return json(
+      return Response.json(
         { success: false, error: "Invalid or expired verification code" },
         { status: 400 }
       );
@@ -29,7 +28,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
     const headers = createAuthHeaders(token);
 
-    return json(
+    return Response.json(
       {
         success: true,
         user: {
@@ -47,13 +46,13 @@ export async function action({ request }: ActionFunctionArgs) {
     console.error("Verify login error:", error);
 
     if (error instanceof z.ZodError) {
-      return json(
+      return Response.json(
         { success: false, error: "Invalid input" },
         { status: 400 }
       );
     }
 
-    return json(
+    return Response.json(
       { success: false, error: "Login verification failed" },
       { status: 500 }
     );

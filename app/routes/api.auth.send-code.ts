@@ -1,5 +1,4 @@
 import type { ActionFunctionArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
 import { z } from "zod";
 import { generateVerificationCode, sendVerificationEmail } from "~/services/verification.server";
 import { isProd } from "~/utils/env.server";
@@ -17,14 +16,14 @@ export async function action({ request }: ActionFunctionArgs) {
 
     if (isProd) {
       await sendVerificationEmail(email, code);
-      return json(
+      return Response.json(
         { success: true, message: "Verification code sent" },
         { status: 200 }
       );
     } else {
       // In development, don't actually send email; return the code for UI hint
       console.log(`[DEV] Verification code for ${email}: ${code}`);
-      return json(
+      return Response.json(
         { success: true, message: "Verification code generated", dev: true, code },
         { status: 200 }
       );
@@ -33,13 +32,13 @@ export async function action({ request }: ActionFunctionArgs) {
     console.error("Send code error:", error);
 
     if (error instanceof z.ZodError) {
-      return json(
+      return Response.json(
         { success: false, error: "Invalid email format" },
         { status: 400 }
       );
     }
 
-    return json(
+    return Response.json(
       { success: false, error: "Failed to send verification code" },
       { status: 500 }
     );
