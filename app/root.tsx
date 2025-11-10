@@ -8,7 +8,7 @@ export const links = () => [
 
 export const meta = () => {
   return [
-    { title: "Remix + Neon Auth" },
+    { title: "replace with your app name" },
     { name: "description", content: "Email verification login with Remix and Neon" },
   ];
 };
