@@ -1,4 +1,4 @@
-import { Links, Meta, Outlet, Scripts, ScrollRestoration, Link, isRouteErrorResponse, useRouteError, useRevalidator } from "@remix-run/react";
+import { Links, Meta, Outlet, Scripts, ScrollRestoration, isRouteErrorResponse, useRouteError, useRevalidator } from "@remix-run/react";
 import { useEffect } from "react";
 import tailwindStyles from "./tailwind.css?url";
 
@@ -47,8 +47,12 @@ export default function App() {
             revalidator.revalidate();
           }
         })
-        .catch(() => {});
-    } catch {}
+        .catch(() => {
+          // noop: 静默处理网络错误
+        });
+    } catch {
+      // noop: 静默处理访问 localStorage 失败
+    }
     // run once on mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -70,7 +74,7 @@ export function ErrorBoundary() {
         </head>
         <body>
           <h1>{error.status} {error.statusText}</h1>
-          <p>{error.data as any}</p>
+          <p>{String(error.data)}</p>
           <ScrollRestoration />
           <Scripts />
         </body>

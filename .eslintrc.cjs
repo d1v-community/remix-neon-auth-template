@@ -23,6 +23,11 @@ module.exports = {
 
   // Base config
   extends: ["eslint:recommended"],
+  rules: {
+    // 允许空的 catch 块（常见于“忽略错误”逻辑），
+    // 但其他空代码块仍然会给 warning 提示
+    "no-empty": ["warn", { allowEmptyCatch: true }],
+  },
 
   overrides: [
     // React
@@ -48,6 +53,10 @@ module.exports = {
           typescript: {},
         },
       },
+      rules: {
+        // JSX 文本中允许直接使用单引号等字符
+        "react/no-unescaped-entities": "off",
+      },
     },
 
     // Typescript
@@ -71,6 +80,23 @@ module.exports = {
         "plugin:import/recommended",
         "plugin:import/typescript",
       ],
+      rules: {
+        // 放宽未使用变量/参数的严格程度
+        // - 改为 warning 而不是 error
+        // - 允许以下划线开头的变量/参数作为“有意未使用”
+        "@typescript-eslint/no-unused-vars": [
+          "warn",
+          {
+            argsIgnorePattern: "^_",
+            varsIgnorePattern: "^_",
+            caughtErrorsIgnorePattern: "^_",
+          },
+        ],
+        // 允许使用 any，减少类型约束的干扰
+        "@typescript-eslint/no-explicit-any": "off",
+        // 允许使用 // @ts-ignore 等，只作为 warning 提醒
+        "@typescript-eslint/ban-ts-comment": "warn",
+      },
     },
 
     // Node

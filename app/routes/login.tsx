@@ -34,8 +34,12 @@ export default function Login() {
             navigate("/", { replace: true });
           }
         })
-        .catch(() => {});
-    } catch {}
+        .catch(() => {
+          // noop: 静默处理网络错误
+        });
+    } catch {
+      // noop: 静默处理初始化错误
+    }
   }, [navigate]);
 
   const handleSendCode = async (e: React.FormEvent) => {
@@ -95,11 +99,10 @@ export default function Login() {
 
       // Attempt to request Storage Access for third-party iframes (Safari/Chrome SAA)
       try {
-        const anyDoc = document as any;
-        if (typeof anyDoc.hasStorageAccess === "function") {
-          const hasAccess = await anyDoc.hasStorageAccess();
-          if (!hasAccess && typeof anyDoc.requestStorageAccess === "function") {
-            await anyDoc.requestStorageAccess();
+        if (typeof document.hasStorageAccess === "function") {
+          const hasAccess = await document.hasStorageAccess();
+          if (!hasAccess && typeof document.requestStorageAccess === "function") {
+            await document.requestStorageAccess();
           }
         }
       } catch {
@@ -109,7 +112,9 @@ export default function Login() {
       // Sync server cookie from Authorization if cookies were previously blocked
       try {
         await fetch("/api/auth/sync-cookie", { method: "POST" });
-      } catch {}
+      } catch {
+        // noop: 静默处理同步 cookie 失败
+      }
 
       navigate("/");
     } catch (err) {
@@ -171,7 +176,7 @@ export default function Login() {
             <form onSubmit={handleVerifyCode} className="space-y-6">
               <div className="text-center">
                 <p className="text-sm text-gray-600 mb-4">
-                  We've sent a verification code to
+                  We&apos;ve sent a verification code to
                 </p>
                 <p className="font-medium text-gray-900">{email}</p>
               </div>
@@ -229,7 +234,7 @@ export default function Login() {
                 onClick={handleSendCode}
                 className="w-full text-blue-600 hover:text-blue-700 font-medium transition"
               >
-                Didn't receive code? Resend
+                Didn&apos;t receive code? Resend
               </button>
             </form>
           )}

@@ -23,12 +23,12 @@ export default function handleRequest(
   // This is ignored so we can keep it in the template for visibility.  Feel
   // free to delete this parameter in your app if you're not using it!
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  loadContext: AppLoadContext
+  _loadContext: AppLoadContext
 ) {
   const requestId = crypto.randomUUID();
   const logger = getLogger(requestId);
   responseHeaders.set("X-Request-Id", requestId);
-  logger.info({ url: request.url, method: (request as any).method }, "request:start");
+  logger.info({ url: request.url, method: request.method }, "request:start");
   return isbot(request.headers.get("user-agent") || "")
     ? handleBotRequest(
         request,

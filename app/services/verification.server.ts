@@ -1,7 +1,7 @@
 import { Resend } from "resend";
 import { db } from "~/db/db.server";
 import { verificationCodes, users } from "~/db/schema";
-import { eq, and, lt, gt } from "drizzle-orm";
+import { eq, and, gt } from "drizzle-orm";
 import { env } from "~/utils/env.server";
 import { randomUUID } from "crypto";
 

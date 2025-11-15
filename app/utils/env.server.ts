@@ -22,12 +22,16 @@ if (!parsed.success) {
 }
 
 export const env = {
-  NODE_ENV: parsed.success ? parsed.data.NODE_ENV : (process.env.NODE_ENV as any) ?? "development",
+  NODE_ENV: parsed.success
+    ? parsed.data.NODE_ENV
+    : (process.env.NODE_ENV as string) ?? "development",
   DATABASE_URL: process.env.DATABASE_URL!,
   APP_URL: parsed.success ? parsed.data.APP_URL : process.env.APP_URL ?? "http://localhost:5173",
   LOG_LEVEL: process.env.LOG_LEVEL ?? "info",
   RESEND_API_KEY: parsed.success ? parsed.data.RESEND_API_KEY : process.env.RESEND_API_KEY,
-  JWT_SECRET: parsed.success ? parsed.data.JWT_SECRET : (process.env.JWT_SECRET ?? "your-secret-key-change-in-production"),
+  JWT_SECRET: parsed.success
+    ? parsed.data.JWT_SECRET
+    : (process.env.JWT_SECRET ?? "your-secret-key-change-in-production"),
 };
 
 export const isProd = env.NODE_ENV === "production";

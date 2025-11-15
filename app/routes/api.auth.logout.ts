@@ -1,7 +1,6 @@
-import type { ActionFunctionArgs } from "@remix-run/node";
 import { createLogoutHeaders } from "~/utils/auth.server";
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action() {
   const headers = createLogoutHeaders();
 
   return Response.json(

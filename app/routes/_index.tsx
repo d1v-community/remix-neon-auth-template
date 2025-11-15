@@ -30,14 +30,18 @@ export default function Index() {
         if (d && d.authenticated) setClientUser(d.user);
         else setClientUser(null);
       })
-      .catch(() => {});
+      .catch(() => {
+        // noop: 静默处理网络错误
+      });
   }, []);
 
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
     } finally {
-      try { localStorage.removeItem("auth-token"); } catch {}
+      try { localStorage.removeItem("auth-token"); } catch {
+        // noop: 静默处理清理 token 失败
+      }
       navigate("/login", { replace: true });
     }
   };

@@ -3,7 +3,7 @@ type DrizzleConfig = {
   schema: string;
   out?: string;
   driver?: string;
-  dbCredentials?: any;
+  dbCredentials?: Record<string, string>;
 };
 
 export default {
