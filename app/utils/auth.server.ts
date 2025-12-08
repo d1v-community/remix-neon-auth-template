@@ -16,17 +16,24 @@ export async function getUserFromRequest(request: Request): Promise<User | null>
     return null;
   }
 
-  const userResults = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, payload.userId))
-    .limit(1);
+  try {
+    const userResults = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, payload.userId))
+      .limit(1);
 
-  if (userResults.length === 0) {
+    if (userResults.length === 0) {
+      return null;
+    }
+
+    return userResults[0];
+  } catch (error) {
+    // If the database is not configured (for example, missing DATABASE_URL),
+    // we treat this as "no user" instead of crashing the request.
+    console.error("Failed to load user from database:", error);
     return null;
   }
-
-  return userResults[0];
 }
 
 export async function requireUser(request: Request): Promise<User> {

@@ -1,7 +1,11 @@
-import { useLoaderData, Link, useNavigate } from "@remix-run/react";
+import { useLoaderData, useNavigate } from "@remix-run/react";
 import { useEffect, useState } from "react";
-import type { MetaFunction, LoaderFunctionArgs, SerializeFrom } from "@remix-run/node";
+import { json, type MetaFunction, type LoaderFunctionArgs, type SerializeFrom } from "@remix-run/node";
 import { getUserFromRequest } from "~/utils/auth.server";
+import { getEnvWarningMessage } from "~/utils/env.server";
+import { AppHeader } from "~/components/AppHeader";
+import { AppFooter } from "~/components/AppFooter";
+import { DevLoadingCard } from "~/components/DevLoadingCard";
 
 export const meta: MetaFunction = () => {
   return [
@@ -12,13 +16,15 @@ export const meta: MetaFunction = () => {
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const user = await getUserFromRequest(request);
-  return { user };
+  const envWarning = getEnvWarningMessage();
+
+  return json({ user, envWarning });
 };
 
 type LoaderData = SerializeFrom<typeof loader>;
 
 export default function Index() {
-  const { user } = useLoaderData<typeof loader>();
+  const { user, envWarning } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const [clientUser, setClientUser] = useState<LoaderData["user"]>(user);
 
@@ -39,53 +45,32 @@ export default function Index() {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
     } finally {
-      try { localStorage.removeItem("auth-token"); } catch {
+      try {
+        localStorage.removeItem("auth-token");
+      } catch {
         // noop: 静默处理清理 token 失败
       }
       navigate("/login", { replace: true });
     }
   };
 
-  return (
-    <div className="min-h-screen flex flex-col bg-white">
-      <header className="w-full border-b">
-        <div className="mx-auto max-w-7xl px-4 py-3">
-          <div className="flex items-center justify-end">
-            {(clientUser ?? user) ? (
-              <div className="relative group">
-                <div className="text-sm text-gray-700 group-hover:text-gray-900 cursor-default">
-                  {(clientUser ?? user)!.displayName || (clientUser ?? user)!.username || (clientUser ?? user)!.email}
-                </div>
-                <div className="absolute right-0 mt-2 hidden group-hover:block">
-                  <button
-                    onClick={handleLogout}
-                    className="px-3 py-1 text-sm text-white bg-gray-800 rounded shadow hover:bg-gray-900"
-                  >
-                    Logout
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <Link
-                to="/login"
-                className="text-sm text-gray-700 hover:text-gray-900"
-              >
-                Login
-              </Link>
-            )}
-          </div>
-        </div>
-      </header>
+  const effectiveUser = clientUser ?? user;
 
-      <main className="flex-1 flex items-center justify-center">
-        <h1 className="text-2xl font-medium text-gray-900">hello world</h1>
+  return (
+    <div className="min-h-screen flex flex-col bg-white dark:bg-slate-950">
+      {envWarning ? (
+        <div className="w-full bg-red-50 border-b border-red-200 text-red-700 text-sm text-center py-2 px-4 dark:bg-red-950/40 dark:border-red-900 dark:text-red-200">
+          {envWarning}
+        </div>
+      ) : null}
+
+      <AppHeader user={effectiveUser} onLogout={handleLogout} />
+
+      <main className="flex-1 flex items-center justify-center px-4">
+        <DevLoadingCard />
       </main>
 
-      <footer className="w-full border-t">
-        <div className="mx-auto max-w-7xl px-4 py-3 text-sm text-gray-500">
-          develop with d1v
-        </div>
-      </footer>
+      <AppFooter />
     </div>
   );
 }
