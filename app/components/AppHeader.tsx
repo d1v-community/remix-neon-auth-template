@@ -1,5 +1,6 @@
 import { Link } from "@remix-run/react";
 import { ThemeToggleButton } from "~/components/ThemeToggleButton";
+import { APP_TITLE } from "~/constants/app";
 
 export type AppHeaderUser = {
   displayName: string | null;
@@ -18,31 +19,40 @@ export function AppHeader({ user, onLogout }: AppHeaderProps) {
   return (
     <header className="w-full border-b border-slate-200 bg-white/80 backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
       <div className="mx-auto max-w-7xl px-4 py-3">
-        <div className="flex items-center justify-end gap-3">
-          <ThemeToggleButton />
+        <div className="flex items-center justify-between gap-3">
+          <Link
+            to="/"
+            className="text-base font-semibold tracking-tight text-slate-900 transition-colors hover:text-slate-700 dark:text-slate-100 dark:hover:text-white"
+          >
+            {APP_TITLE}
+          </Link>
 
-          {user ? (
-            <div className="relative group">
-              <div className="text-sm text-gray-700 group-hover:text-gray-900 cursor-default dark:text-slate-200 dark:group-hover:text-white">
-                {displayName}
+          <div className="flex items-center gap-3">
+            <ThemeToggleButton />
+
+            {user ? (
+              <div className="relative group">
+                <div className="text-sm text-gray-700 group-hover:text-gray-900 cursor-default dark:text-slate-200 dark:group-hover:text-white">
+                  {displayName}
+                </div>
+                <div className="absolute right-0 mt-2 hidden group-hover:block">
+                  <button
+                    onClick={onLogout}
+                    className="px-3 py-1 text-sm text-white bg-gray-800 rounded shadow hover:bg-gray-900 dark:bg-slate-200 dark:text-slate-900 dark:hover:bg-white"
+                  >
+                    Logout
+                  </button>
+                </div>
               </div>
-              <div className="absolute right-0 mt-2 hidden group-hover:block">
-                <button
-                  onClick={onLogout}
-                  className="px-3 py-1 text-sm text-white bg-gray-800 rounded shadow hover:bg-gray-900 dark:bg-slate-200 dark:text-slate-900 dark:hover:bg-white"
-                >
-                  Logout
-                </button>
-              </div>
-            </div>
-          ) : (
-            <Link
-              to="/login"
-              className="text-sm text-gray-700 hover:text-gray-900 dark:text-slate-200 dark:hover:text-white"
-            >
-              Login
-            </Link>
-          )}
+            ) : (
+              <Link
+                to="/login"
+                className="text-sm text-gray-700 hover:text-gray-900 dark:text-slate-200 dark:hover:text-white"
+              >
+                Login
+              </Link>
+            )}
+          </div>
         </div>
       </div>
     </header>

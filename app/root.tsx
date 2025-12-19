@@ -1,6 +1,7 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration, isRouteErrorResponse, useRouteError, useRevalidator } from "@remix-run/react";
 import { useEffect } from "react";
 import tailwindStyles from "./tailwind.css?url";
+import { APP_TITLE } from "~/constants/app";
 
 export const links = () => [
   { rel: "stylesheet", href: tailwindStyles },
@@ -8,7 +9,7 @@ export const links = () => [
 
 export const meta = () => {
   return [
-    { title: "replace with your app name" },
+    { title: APP_TITLE },
     { name: "description", content: "Email verification login with Remix and Neon" },
   ];
 };
