@@ -4,11 +4,11 @@
 
 - [General Questions](#general-questions)
 - [Setup & Installation](#setup--installation)
-- [Database](#database)
 - [Authentication](#authentication)
-- [Email Verification](#email-verification)
-- [Deployment](#deployment)
-- [Customization](#customization)
+- [Payments](#payments)
+- [Environment & Deployment](#environment--deployment)
+- [Template Customization](#template-customization)
+- [Database & Migrations](#database--migrations)
 - [Troubleshooting](#troubleshooting)
 
 ---
@@ -17,806 +17,668 @@
 
 ### What is this template for?
 
-This is a **production-ready starter template** for building web applications with email verification login using:
-- **Remix** - Full-stack React framework
-- **Neon** - Serverless PostgreSQL
-- **JWT** - Token-based authentication
-- **Tailwind CSS** - Styling
-- **Drizzle ORM** - Type-safe database queries
-- **Resend** - Email delivery service
+This is a **production-ready Remix starter template** for building web applications with:
 
-It's perfect for:
-- ✅ Passwordless authentication systems
-- ✅ SaaS applications
-- ✅ MVP prototypes
-- ✅ Authentication-heavy projects
+- **Email verification login**
+- **JWT-based authentication**
+- **Neon PostgreSQL**
+- **Drizzle ORM**
+- **Tailwind CSS**
+- **Payment Hub integration**
+- **AI-friendly project structure and documentation**
+
+It is designed as a **template project** that can be used by your **AI one-click application deployment platform**. The idea is that AI can read the template, understand its structure, and then adapt the implementation into a real project with minimal manual work.
 
 ---
 
-### Is this production ready?
+### Who should use this template?
 
-**Yes!** The template includes:
-- 🔒 Security best practices
-- 🛡️ Input validation
-- 🏗️ Scalable architecture
-- 📝 Comprehensive documentation
-- ✅ TypeScript for type safety
+This template is a good fit for:
 
-However, **you should**:
-- Review security settings for your use case
-- Add rate limiting
-- Set up monitoring
-- Configure proper logging
-- Follow your organization's security policies
+- SaaS products
+- AI tools and agent platforms
+- Membership or subscription products
+- Internal tools with login + payments
+- MVPs that need fast delivery
+- Teams standardizing project scaffolding for AI-assisted development
 
 ---
 
-### Can I use this without Neon?
+### Is this meant to be used directly in production?
 
-**Yes!** You can use any PostgreSQL database.
+Yes, but as with any starter template, you should still review:
 
-**Update** `drizzle.config.ts`:
-```typescript
-export default {
-  schema: "./app/db/schema.ts",
-  out: "./drizzle",
-  driver: "pg",
-  dbCredentials: {
-    connectionString: process.env.DATABASE_URL!,
-  },
-};
-```
+- environment variable configuration
+- payment fulfillment flow
+- webhook handling
+- access control rules
+- logging and monitoring
+- rate limiting
+- domain/email reputation
+- business-specific security requirements
 
-And `DATABASE_URL` in `.env`:
-```env
-DATABASE_URL=postgresql://user:pass@localhost:5432/dbname
-```
+The template is a solid foundation, not a finished business product.
 
 ---
 
-### Can I use a different email service?
+### Why does this template emphasize AI-friendly structure?
 
-**Yes!** Currently configured for Resend, but you can swap it out.
+Because the project is intended to work well with automated coding agents and deployment workflows. That means:
 
-**Example with SendGrid**:
+- clear route boundaries
+- centralized environment variable handling
+- explicit service-layer abstractions
+- straightforward API routes
+- docs that explain how to customize and deploy the template
 
-```bash
-npm install @sendgrid/mail
-```
-
-```typescript
-// app/services/verification.server.ts
-import sgMail from '@sendgrid/mail';
-
-sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
-
-export async function sendVerificationEmail(email: string, code: string) {
-  await sgMail.send({
-    to: email,
-    from: 'auth@yourdomain.com',
-    subject: 'Your verification code',
-    html: `<p>Your code: <strong>${code}</strong></p>`,
-  });
-}
-```
+This makes it easier for AI to understand what to change when turning the template into a new application.
 
 ---
 
 ## Setup & Installation
 
-### How do I get started?
+### How do I get started locally?
 
-Follow the [Quick Start guide](../README.md#quick-start):
+Basic setup flow:
 
-1. Clone the repository
-2. Install dependencies: `npm install`
-3. Copy environment file: `cp .env.example .env`
-4. Configure environment variables
-5. Run migrations: `npm run db:migrate`
-6. Start dev server: `npm run dev`
+1. Install dependencies
+2. Copy `.env.example` to `.env`
+3. Configure required environment variables
+4. Run database migrations
+5. Start the dev server
+
+Example:
+
+```bash
+pnpm install
+cp .env.example .env
+pnpm run db:migrate:api
+pnpm run dev
+```
+
+By default, prefer the **API-based database scripts**.
+
+---
+
+### Which package manager should I use?
+
+`pnpm` is recommended because the project scripts and repository guidance are written with `pnpm` in mind.
+
+You can still adapt to other package managers if needed, but the documented workflow assumes:
+
+```bash
+pnpm install
+pnpm run dev
+pnpm run typecheck
+```
 
 ---
 
 ### What are the system requirements?
 
-- **Node.js**: 20.0.0 or higher
-- **Package Manager**: npm, pnpm, or yarn
-- **Database**: PostgreSQL (Neon recommended)
-- **Email Service**: Resend (optional for development)
+Recommended minimums:
 
-Check version:
-```bash
-node --version  # Should be >= 20.0.0
-```
+- **Node.js 20+**
+- **pnpm**
+- Access to a **PostgreSQL-compatible database** such as Neon
+- Optional: **Resend** account for email delivery
+- Optional: **Payment Hub** credentials for checkout integration
 
 ---
 
-### I'm getting "Cannot find module" errors
+### Do I need email delivery configured in development?
 
-**Cause**: Dependencies not installed
+Not necessarily.
 
-**Solution**:
-```bash
-npm install
-```
+If `RESEND_API_KEY` is not set, you can still develop most of the application. Depending on your local flow, verification behavior can be tested without a real production email setup.
 
-If using pnpm:
-```bash
-pnpm install
-```
-
-If using yarn:
-```bash
-yarn install
-```
-
----
-
-### TypeScript errors on first run
-
-**Cause**: Type checking before build
-
-**Solution**:
-1. Build the project: `npm run build`
-2. Or skip type check: `npm run dev -- --skip-type-check`
-
-**To fix permanently**: Run type check and fix errors:
-```bash
-npm run typecheck
-```
-
----
-
-## Database
-
-### How do I create a Neon database?
-
-1. Go to [neon.tech](https://neon.tech)
-2. Sign up for free
-3. Click "Create a new project"
-4. Choose a name and region
-5. Wait for setup (30 seconds)
-6. Go to Settings → Connection String
-7. Copy the URI and use as `DATABASE_URL`
-
-**Free tier** includes:
-- 500 MB storage
-- 3 GB bandwidth per month
-- Unlimited projects
-- 1 database per project
-
----
-
-### How do I run migrations?
-
-**Option 1: Local CLI**
-```bash
-npm run db:migrate
-```
-
-**Option 2: Via Neon API (recommended for production)**
-```bash
-npm run db:migrate:api
-```
-
-**View migrations**: Check `drizzle/` folder
-
----
-
-### Can I use Prisma instead of Drizzle?
-
-**Yes!** But requires significant changes:
-
-1. Install Prisma
-```bash
-npm install prisma @prisma/client
-```
-
-2. Initialize Prisma
-```bash
-npx prisma init
-```
-
-3. Recreate schema in `prisma/schema.prisma`
-4. Update `app/db/db.server.ts` to use Prisma client
-5. Update migration scripts
-
-**Note**: This template is configured for Drizzle. Using Prisma requires refactoring.
-
----
-
-### How do I add a new table?
-
-1. Edit `app/db/schema.ts`:
-
-```typescript
-export const yourTable = pgTable('your_table', {
-  id: text('id').primaryKey(),
-  name: text('name').notNull(),
-  createdAt: timestamp('created_at').defaultNow(),
-});
-```
-
-2. Create migration:
-```bash
-cp drizzle/0000_init.sql drizzle/0001_add_your_table.sql
-# Edit the new file
-```
-
-3. Run migration:
-```bash
-npm run db:migrate
-```
-
----
-
-### Database is paused in Neon
-
-**Cause**: Neon pauses databases after 5 minutes of inactivity (free tier)
-
-**Solution**:
-1. Open Neon dashboard
-2. Click "Resume" on your database
-3. Wait for it to become active (few seconds)
-
-**Prevention**:
-- Keep a connection alive (pinging every 5 minutes)
-- Upgrade to paid plan
-- Use Neon Pro for no pause
+For production, configure a real email provider.
 
 ---
 
 ## Authentication
 
-### How does passwordless login work?
+### How does login work?
 
-**Flow**:
+This template uses **email verification code login** instead of passwords.
+
+Typical flow:
 
 1. User enters email
-2. System generates 6-digit code
-3. Code sent to email (or logged to console in dev)
-4. User enters code
-5. System validates code (10 min expiry, one-time use)
-6. If valid, creates/finds user account
-7. Issues JWT token
-8. Stores token in HTTP-only cookie
-9. User is logged in
+2. App sends a verification code
+3. User submits the code
+4. Server verifies the code
+5. App creates an authenticated session using JWT/cookies
 
-**Benefits**:
-- ✅ No passwords to remember
-- ✅ No password reset flows
-- ✅ No password security concerns
-- ✅ Easy migration from other systems
+This keeps the auth flow simple and works well for template-based applications.
 
 ---
 
-### Can I use passwords instead of email codes?
+### Where is authentication logic implemented?
 
-**Yes!** But requires modifications:
+Authentication-related logic is primarily organized across:
 
-1. Update schema to add `passwordHash` field
-2. Create password hashing/verification logic
-3. Create new login route
-4. Update UI forms
+- auth utilities in `app/utils`
+- verification/email services in `app/services`
+- Remix routes under `app/routes/api.auth.*`
 
-**Example with bcrypt**:
-
-```bash
-npm install bcrypt
-npm install --save-dev @types/bcrypt
-```
-
-**Update schema**:
-```typescript
-export const users = pgTable('users', {
-  // ... existing fields
-  passwordHash: text('password_hash'),
-});
-```
-
-**In login route**:
-```typescript
-import bcrypt from 'bcrypt';
-
-const isValid = await bcrypt.compare(password, user.passwordHash);
-```
+This separation makes it easier for AI or developers to replace pieces independently.
 
 ---
 
-### How long are JWT tokens valid?
+### Do frontend requests need to manually attach the token?
 
-**Default**: 7 days
+Usually no.
 
-**Change in** `app/services/jwt.server.ts`:
-```typescript
-export function generateToken(payload: TokenPayload): string {
-  const token = jwt.sign(payload, env.JWT_SECRET, {
-    expiresIn: "7d",  // Change here: "1h", "30d", etc.
-  });
-  return token;
-}
-```
+For `/api/*` frontend requests, the project follows the convention that a global fetch/auth mechanism handles authorization automatically when appropriate.
 
-**Security Note**: Shorter = more secure but more frequent logins
+Do not manually add `Authorization` headers unless you have a specific exception.
 
 ---
 
-### Can I add user roles/permissions?
+### Can I replace email login with another auth method?
 
-**Yes!** Add a `role` field:
+Yes.
 
-```typescript
-// app/db/schema.ts
-export const users = pgTable('users', {
-  id: text('id').primaryKey(),
-  email: text('email'),
-  role: text('role').notNull().default('user'),  // Add this
-});
-```
+Common alternatives include:
 
-**Check role in routes**:
-```typescript
-export async function loader({ request }: LoaderFunctionArgs) {
-  const user = await requireUser(request);
-  if (user.role !== 'admin') {
-    throw new Response('Forbidden', { status: 403 });
-  }
-  // ...
-}
-```
+- magic links
+- OAuth
+- username/password
+- SSO
+- organization-based auth
+- wallet login
+
+If you replace auth, update:
+
+- login UI
+- auth APIs
+- user/session handling
+- protected route checks
+- related docs
 
 ---
 
-### How do I implement "Remember Me"?
+## Payments
 
-**Option 1**: Extend JWT expiration
+### What payment capability is included in this template?
 
-When user checks "Remember Me":
-```typescript
-const token = jwt.sign(payload, env.JWT_SECRET, {
-  expiresIn: "30d",  // Instead of 7d
-});
-```
+The template includes a **Payment Hub integration** that lets the app:
 
-**Option 2**: Separate "remember me" token
+- read products from Payment Hub
+- render a pricing page
+- create checkout/payment links
+- redirect users into hosted checkout
+- return users to success/cancel pages
 
-Create a second token with longer expiry stored separately.
-
----
-
-## Email Verification
-
-### Verification code not received
-
-**Check list**:
-
-1. **Is RESEND_API_KEY set?**
-   - In development, codes are logged to console
-   - Check server logs
-
-2. **Check spam folder**
-
-3. **Is email address correct?**
-
-4. **Check Resend dashboard**
-   - Go to Logs → Email Events
-   - Check if email was sent
-   - Verify domain (if custom)
-
-5. **Domain verification**
-   - Custom domains need DNS verification
-   - Check Resend dashboard → Domains
+This gives you a working starting point for charging users without building a checkout stack from scratch.
 
 ---
 
-### Customize email template
+### Which routes are related to payments?
 
-Edit `app/services/verification.server.ts`:
+The main payment-related routes are:
 
-```typescript
-await resend.emails.send({
-  from: "Your Brand <hello@yourdomain.com>",
-  to: [email],
-  subject: "Your Login Code for Your App",
-  html: `
-    <div style="font-family: Arial, sans-serif; padding: 20px;">
-      <h1 style="color: #333;">Welcome to Your App!</h1>
-      <p>Enter this code to log in:</p>
-      <div style="font-size: 32px; font-weight: bold; margin: 20px 0; color: #0070f3;">
-        ${code}
-      </div>
-      <p>This code expires in 10 minutes.</p>
-      <p>If you didn't request this, please ignore.</p>
-    </div>
-  `,
-});
-```
+- `/pricing` — product list and checkout entry point
+- `/api/pay/create` — create a payment link programmatically
+- `/pay/success` — payment success landing page
+- `/pay/cancel` — payment cancellation landing page
+
+These routes are intended to be easy to customize when turning the template into a real product.
 
 ---
 
-### Change verification code format
+### How does the pricing page work?
 
-**Current**: 6-digit numeric (123456)
+The pricing page loads products from Payment Hub and displays:
 
-**Change to alphanumeric**:
+- product name
+- description
+- price
+- billing type
+- active/inactive state
 
-```typescript
-// app/services/verification.server.ts
-export async function generateVerificationCode(email: string) {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let code = '';
-  for (let i = 0; i < 6; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  // ...
-}
-```
+If the user is logged in, they can start checkout directly.
+If not, they are prompted to log in first.
 
 ---
 
-### Rate limiting on verification requests
+### How is checkout created?
 
-Currently not implemented. Add for production:
+The server creates a hosted payment link through the payment service layer, then either:
 
-```typescript
-// Example with Redis
-import Redis from 'ioredis';
+- redirects the user to the checkout URL from the `/pricing` page flow, or
+- returns the checkout URL as JSON from `/api/pay/create`
 
-const redis = new Redis();
+This supports both:
 
-export async function generateVerificationCode(email: string) {
-  const key = `send:${email}`;
-  const count = await redis.incr(key);
-
-  if (count > 5) {
-    throw new Error("Rate limit exceeded. Try again later.");
-  }
-
-  await redis.expire(key, 60); // 1 minute
-  // ...
-}
-```
+- regular browser flows
+- app/API-driven payment initiation
 
 ---
 
-## Deployment
+### What environment variables are required for payments?
 
-### Which platform should I deploy to?
+At minimum, payment integration typically needs:
 
-**Recommended**:
+- `PAY_BASE_URL`
+- `PAY_API_TOKEN`
 
-- **Vercel** - Best Remix support, easy setup, generous free tier
-- **Netlify** - Good Remix support, edge functions
-- **Railway** - Simple, database included
-- **Fly.io** - More control, global distribution
+Optional payment redirect customization:
 
-See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed guides.
+- `PAY_SUCCESS_URL`
+- `PAY_CANCEL_URL`
 
----
+If the custom redirect URLs are not provided, the app falls back to:
 
-### How to deploy to Vercel?
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone)
-
-Or CLI:
-```bash
-npm install -g vercel
-vercel login
-vercel
-```
-
-Don't forget to add environment variables:
-```bash
-vercel env add DATABASE_URL
-vercel env add JWT_SECRET
-vercel env add RESEND_API_KEY
-```
+- `APP_URL/pay/success`
+- `APP_URL/pay/cancel`
 
 ---
 
-### Environment variables not working in production
+### What happens if payment configuration is missing?
 
-**Checklist**:
+The app is designed to fail more gracefully than a hard crash.
 
-1. ✅ Variables added to platform dashboard
-2. ✅ Names match exactly (case-sensitive)
-3. ✅ No trailing spaces
-4. ✅ Redeployed after adding
-5. ✅ Server restarted
+Typical behavior includes:
 
-**Common issues**:
-- `JWT_SECRET` not set → Login fails
-- `DATABASE_URL` wrong format → Database errors
-- Missing `?sslmode=require` → Connection errors
+- a warning banner in the UI
+- product loading failures surfaced as friendly errors
+- payment creation failing with a readable server response
+
+This is helpful in template scenarios where some environments are partially configured.
 
 ---
 
-### Build fails on deployment
+### Does a successful payment automatically grant access to a product?
 
-**Check logs**:
-- Usually dependency or type errors
+Not by itself.
 
-**Common fixes**:
-```bash
-# Clear node_modules and reinstall
-rm -rf node_modules package-lock.json
-npm install
+The success page is currently a **template handoff point**. In a real application, you usually still need to:
 
-# Build locally first
-npm run build
+- record the order
+- verify payment status
+- grant entitlement
+- activate a subscription
+- credit the user account
+- notify internal systems
 
-# Check TypeScript
-npm run typecheck
-```
+For real fulfillment, you should usually add **webhook-based confirmation**.
 
 ---
 
-## Customization
+### Should I rely only on the success redirect page for fulfillment?
 
-### Change primary brand color
+No.
 
-**In** `tailwind.config.ts`:
+Redirect pages are useful for the user experience, but they are not enough for a trustworthy fulfillment workflow. Users may close the tab, lose connection, or manipulate URLs.
 
-```typescript
-export default {
-  content: ["./app/**/*.{js,jsx,ts,tsx}"],
-  theme: {
-    extend: {
-      colors: {
-        primary: {
-          50: '#eff6ff',
-          500: '#3b82f6',  // Change this
-          600: '#2563eb',
-        },
-      },
-    },
-  },
-};
-```
+For production payment fulfillment, add:
 
-**Use in components**:
-```tsx
-<button className="bg-primary-500 text-white">
-  Click me
-</button>
-```
+- server-side order persistence
+- webhook verification
+- idempotent fulfillment logic
+- retry-safe access granting
 
 ---
 
-### Add a new page
+### Can I sell one-time products and subscriptions?
 
-1. Create file in `app/routes/your-page.tsx`
+Yes, the pricing model already anticipates both:
 
-```typescript
-import type { MetaFunction } from "@remix-run/node";
+- `one_time`
+- `recurring`
 
-export const meta: MetaFunction = () => {
-  return [{ title: "Your Page" }];
-};
+You can extend the UI and fulfillment flow depending on whether the product is:
 
-export default function YourPage() {
-  return <div>Your page content</div>;
-}
-```
-
-2. Navigate to `/your-page`
+- credits
+- seats
+- subscription plans
+- downloadable assets
+- API packages
+- premium features
 
 ---
 
-### Add custom fonts
+### Why is there a user ID transformation for payments?
 
-**Option 1: Google Fonts**
+Some payment systems require a specific external user ID shape or length. The template normalizes the application user ID before sending it to Payment Hub so the upstream system receives a stable identifier.
 
-1. Add to `app/root.tsx`:
-
-```typescript
-export const links = () => [
-  { rel: "stylesheet", href: tailwindStyles },
-  { rel: "preconnect", href: "https://fonts.googleapis.com" },
-  { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-  { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" },
-];
-```
-
-2. Update Tailwind config:
-
-```typescript
-export default {
-  content: ["./app/**/*.{js,jsx,ts,tsx}"],
-  theme: {
-    extend: {
-      fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-      },
-    },
-  },
-};
-```
+If your billing platform has different requirements, you can change that mapping in the payment service layer.
 
 ---
 
-### Add a loading state
+## Environment & Deployment
 
-```tsx
-export default function Login() {
-  const [loading, setLoading] = useState(false);
+### Which environment variables are always important?
 
-  return (
-    <button
-      disabled={loading}
-      className="disabled:opacity-50"
-    >
-      {loading ? "Loading..." : "Submit"}
-    </button>
-  );
-}
-```
+Core app variables usually include:
+
+- `DATABASE_URL`
+- `JWT_SECRET`
+- `APP_URL`
+
+Other common variables:
+
+- `RESEND_API_KEY`
+- `LOG_LEVEL`
+- `PAY_BASE_URL`
+- `PAY_API_TOKEN`
+- `PAY_SUCCESS_URL`
+- `PAY_CANCEL_URL`
+
+Check `docs/ENVIRONMENT.md` for the full breakdown.
 
 ---
 
-### Add form validation
+### What is `APP_URL` used for?
 
-Using Zod:
+`APP_URL` is the public base URL of your app.
 
-```bash
-npm install zod
-```
+It is important for:
 
-```typescript
-import { z } from "zod";
+- absolute redirect URLs
+- email links
+- payment success/cancel fallback URLs
+- production-safe environment behavior
 
-const schema = z.object({
-  email: z.string().email("Invalid email"),
-  code: z.string().length(6, "Code must be 6 digits"),
-});
+Examples:
 
-export async function action({ request }: ActionFunctionArgs) {
-  const formData = await request.formData();
-  const data = Object.fromEntries(formData);
+- `http://localhost:5173` for local development
+- `https://your-app.example.com` for production
 
-  const result = schema.safeParse(data);
-  if (!result.success) {
-    return json({ errors: result.error.flatten() }, { status: 400 });
-  }
-  // Process valid data
-}
-```
+---
+
+### Can I deploy this on my AI one-click application deployment platform?
+
+Yes. This template is meant to fit that workflow.
+
+A typical AI deployment flow looks like:
+
+1. AI reads the template structure
+2. AI updates branding, copy, schema, business logic, and payment behavior
+3. Platform injects environment variables
+4. Platform runs migrations
+5. Platform deploys the app
+6. AI or operators verify payment and auth behavior
+
+To make this smooth, ensure your platform can provide:
+
+- application environment variables
+- a migration workflow
+- secure secret handling
+- a way to configure callback URLs
+- optional admin/API tokens for database API mode
+
+---
+
+### What should an AI deployment platform customize first?
+
+The most common customizations are:
+
+- app name and branding
+- product copy on the homepage and pricing page
+- payment success page messaging
+- email sender details
+- database schema for business data
+- feature gating / entitlements
+- onboarding flow after payment
+
+That usually gets you from "template" to "project-specific app" quickly.
+
+---
+
+### How should secrets be handled in deployment?
+
+Never hardcode secrets into the repository.
+
+Use your deployment platform's secret management for values like:
+
+- `DATABASE_URL`
+- `JWT_SECRET`
+- `RESEND_API_KEY`
+- `PAY_API_TOKEN`
+- `AUTH_TOKEN` for API-based DB workflows
+
+Avoid exposing credentials to browser code or logs.
+
+---
+
+## Template Customization
+
+### What parts of the template are intended to be customized?
+
+The most commonly customized areas are:
+
+- `app/constants/app.ts` for app-level branding
+- landing page and marketing copy
+- login UX
+- pricing page product presentation
+- post-payment success flow
+- database schema
+- email templates
+- dashboard/business logic
+
+Think of the current implementation as the default scaffold.
+
+---
+
+### How should I turn this template into a project for a specific business?
+
+A practical order is:
+
+1. Update app title, branding, and homepage copy
+2. Define your domain model in the database
+3. Adjust auth requirements
+4. Update pricing/product display
+5. Implement post-payment fulfillment
+6. Add business dashboards or workflows
+7. Refresh docs to match the new app
+
+This sequence works well for both humans and AI agents.
+
+---
+
+### What should I change after integrating payments into a real product?
+
+Usually you should customize:
+
+- pricing copy and plan names
+- what happens after successful purchase
+- what permissions/features each plan unlocks
+- billing support contact text
+- transaction history UI
+- refund or cancellation flows
+- webhook processing
+
+The included success and cancel pages are starter experiences, not the final business UX.
+
+---
+
+### Can I use this template without the payment feature?
+
+Yes.
+
+If your project does not need payments, you can:
+
+- hide or remove the pricing route
+- remove the payment service layer
+- omit payment environment variables
+- adapt docs and navigation accordingly
+
+The template is modular enough for auth-only use cases.
+
+---
+
+### Can I use this template without Neon?
+
+Yes, as long as you use a PostgreSQL-compatible setup and adapt the database configuration where necessary.
+
+Neon is the recommended path because it aligns with the template defaults and docs, but the architecture is not fundamentally locked to Neon.
+
+---
+
+## Database & Migrations
+
+### Which migration workflow should I use?
+
+By default, use the **API-based workflow**:
+
+- `pnpm run db:migrate:api`
+- `pnpm run db:seed:api`
+
+This is the preferred mode because it avoids unnecessarily exposing direct database credentials to local Node processes.
+
+Only use direct DB scripts if you intentionally want that workflow.
+
+---
+
+### What is required for API-based migration mode?
+
+You typically need:
+
+- `PROJECT_ID`
+- `OPCODE_API_BASE` or `BACKEND_ADMIN_API_BASE`
+- `AUTH_TOKEN`
+
+Optional:
+
+- `MIGRATIONS_FOLDER`
+- `SEED_FILE`
+
+This mode is especially useful in managed deployment environments and internal automation platforms.
+
+---
+
+### When should I use direct database scripts instead?
+
+Only when you explicitly want direct DB access and understand the tradeoffs.
+
+Direct scripts may be useful for:
+
+- low-level debugging
+- local experiments
+- environments without the admin API layer
+
+But for normal template workflows, prefer API mode.
+
+---
+
+### Do I need to update the schema for payment features?
+
+Not necessarily for the initial integration shown here.
+
+The current payment integration focuses on:
+
+- product listing from an external payment service
+- checkout creation
+- user redirect handling
+
+For a real business app, you will usually want your own tables for things like:
+
+- orders
+- subscriptions
+- entitlements
+- invoices
+- credits
+- webhook events
 
 ---
 
 ## Troubleshooting
 
-### "Cannot read properties of null"
+### The pricing page shows an error or no products. Why?
 
-**Common in**: Cookie handling
+Common causes:
 
-**Fix**:
-```typescript
-// Before
-const token = request.headers.get("Authorization")?.split(" ")[1];
+- `PAY_BASE_URL` is incorrect
+- `PAY_API_TOKEN` is missing or invalid
+- the payment API is unavailable
+- the payment account has no active products
+- upstream API response shape changed
 
-// After
-const authHeader = request.headers.get("Authorization");
-if (!authHeader) return null;
-const token = authHeader.split(" ")[1];
-```
+Start by checking payment-related environment variables and server logs.
 
 ---
 
-### "Route not found" error
+### The app shows an environment warning banner. What does it mean?
 
-**Check**:
-1. File name matches route pattern
-   - `app/routes/about.tsx` → `/about`
-   - `app/routes/blog.$slug.tsx` → `/blog/my-post`
+This usually means one or more required environment variables are missing or invalid.
 
-2. No syntax errors in route file
+The warning is intentionally user-friendly so that deployments fail visibly instead of crashing immediately.
 
-3. Restart dev server after creating route
+Verify your deployment environment and compare it with `docs/ENVIRONMENT.md`.
 
 ---
 
-### CORS errors
+### Payment redirect works, but my app does not grant access afterward.
 
-**Cause**: API called from different origin
+That is expected unless you implement fulfillment.
 
-**Fix**: Configure CORS in platform or use same origin
+A redirect to `/pay/success` does not automatically mean:
 
-For Remix, APIs and frontend are same origin by default. If calling from different domain:
+- your database was updated
+- access was granted
+- the order was verified
+- the subscription was activated
 
-```typescript
-// In API route
-export async function loader({ request }: LoaderFunctionArgs) {
-  const origin = request.headers.get("Origin");
-  return json(data, {
-    headers: {
-      "Access-Control-Allow-Origin": origin || "*",
-    },
-  });
-}
-```
+Add server-side business logic and webhook verification for that.
 
 ---
 
-### Database connection pool exhausted
+### Why does `/api/pay/create` return an error?
 
-**Cause**: Too many concurrent connections
+Likely reasons include:
 
-**Fix**:
-1. Check Neon connection limits
-2. Reduce connection count
-3. Use connection pooling
+- the user is not authenticated
+- `productId` is missing
+- payment configuration is incomplete
+- the upstream payment API returned an error
+- the payment service did not return a checkout URL
 
-Neon automatically pools connections. Keep connections open and reuse.
-
----
-
-### "ENOENT: no such file or directory"
-
-**Cause**: File path issue
-
-**Fix**:
-- Use path aliases: `~/...` points to `app/`
-- Check imports: `import { db } from "~/db/db.server"`
-- Never use relative paths like `../../../db`
+Check the response body and server logs for the exact message.
 
 ---
 
-### Hot reload not working
+### I changed the template, but the docs no longer match. What should I update?
 
-**Fix**:
-```bash
-# Stop server
-Ctrl+C
+At minimum, update:
 
-# Clear cache
-rm -rf node_modules/.vite
+- `README.md`
+- `docs/API.md`
+- `docs/ENVIRONMENT.md`
+- `docs/DEPLOYMENT.md`
+- `docs/PROJECT_STRUCTURE.md`
+- this FAQ
 
-# Restart
-npm run dev
-```
-
----
-
-### ESLint errors
-
-**Fix automatically**:
-```bash
-npm run lint -- --fix
-```
-
-**Disable rule** (temporary):
-```typescript
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const data: any = getData();
-```
-
-**Update config**: `.eslintrc.cjs`
+A template intended for AI-assisted adaptation is much more effective when the documentation stays current.
 
 ---
 
-## Still Need Help?
+### What should I document when I fork or clone this template for another project?
 
-### Resources
+Document these items first:
 
-- 📚 [Remix Documentation](https://remix.run/docs)
-- 📚 [Neon Documentation](https://neon.tech/docs)
-- 📚 [Drizzle Documentation](https://orm.drizzle.team/docs)
-- 📚 [Tailwind Documentation](https://tailwindcss.com/docs)
+- what the app does
+- which environment variables are required
+- which payment provider or billing workflow it uses
+- what happens after payment
+- which migration mode to use
+- what an AI agent is expected to customize
 
-### Get Support
-
-- 🐛 [Report a Bug](https://github.com/YOUR_USERNAME/remix-neon-auth/issues)
-- 💡 [Request a Feature](https://github.com/YOUR_USERNAME/remix-neon-auth/issues)
-- 💬 [Discussions](https://github.com/YOUR_USERNAME/remix-neon-auth/discussions)
-
-### Community
-
-- [Remix Discord](https://rmx.as/discord)
-- [Neon Discord](https://discord.gg/Neon)
+This reduces ambiguity for both developers and automated agents.
 
 ---
 
-**Last Updated**: November 2024
+## Final Recommendation
 
-**Happy coding!** 🚀
+If you are using this repository as a reusable template for an AI-powered deployment platform, keep these principles in mind:
+
+- keep structure predictable
+- keep environment handling centralized
+- keep route responsibilities clear
+- keep docs synchronized with the implementation
+- treat payments as a full workflow, not just a redirect
+- design the project so AI can safely modify it
+
+That will make the template easier to maintain, easier to deploy, and much more effective as a foundation for real applications.

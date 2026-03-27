@@ -1,368 +1,484 @@
 <div align="center">
 
-# 🔐 Remix + Neon Email Authentication Template
+# 🚀 Remix + Neon AI App Template
 
-A production-ready starter template for building web applications with email verification login using Remix, Neon (PostgreSQL), JWT tokens, and Tailwind CSS.
+A production-ready Remix template for building **AI-generated web applications** with:
+
+- **Email verification login**
+- **JWT-based authentication**
+- **Neon / PostgreSQL**
+- **Drizzle ORM**
+- **Tailwind CSS**
+- **Hosted payment integration**
+- **AI-friendly deployment conventions**
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Remix](https://img.shields.io/badge/Remix-000000?logo=remix&logoColor=white)](https://remix.run/)
 [![Neon](https://img.shields.io/badge/Neon-00E5A7?logo=neon&logoColor=white)](https://neon.tech/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Features** • **Quick Start** • **API** • **Deployment** • **Contributing**
+**Template-first** • **Payment-ready** • **AI-deployment-friendly**
 
 </div>
 
-## ✨ Features
+---
 
-- 🔐 **Email Verification Login** - Secure authentication without passwords
-- 🎫 **JWT Tokens** - Stateless token-based authentication
-- 🗄️ **Neon Database** - Serverless PostgreSQL
-- 🎨 **Tailwind CSS** - Beautiful, responsive UI
-- 🏗️ **Remix** - Full-stack React framework
-- 📧 **Resend** - Email delivery service
-- 🛡️ **TypeScript** - Full type safety
-- ⚡ **Drizzle ORM** - Type-safe database queries
-- 🔒 **Security First** - Secure cookie handling and token management
+## What this repository is for
 
-## 🚀 Quick Start
+This repository is not just a demo app.
+
+It is designed to be a **template project** that your AI-powered deployment platform can read, modify, and turn into a real application implementation.
+
+Typical usage looks like this:
+
+1. Start from this template
+2. Let AI adapt the app for a business scenario
+3. Inject environment variables from your platform
+4. Run migrations
+5. Deploy the Remix app
+6. Verify auth and payment flows
+
+That makes this repository a good foundation for:
+
+- SaaS products
+- AI tools
+- membership apps
+- subscription products
+- internal platforms
+- MVPs that need fast delivery
+
+---
+
+## Key features
+
+### Authentication
+
+- Passwordless email verification login
+- JWT-based authenticated sessions
+- Same-origin API auth conventions
+- Server-friendly auth helpers
+
+### Database
+
+- Neon / PostgreSQL compatible
+- Drizzle ORM schema + migrations
+- API-based migration and seed workflow supported
+
+### Payments
+
+- Hosted checkout integration
+- Product listing via `/pricing`
+- Server-side checkout link creation
+- Success and cancel return pages
+- Environment-based payment configuration
+
+### DX / Platform fit
+
+- TypeScript-first
+- Clear route/service separation
+- AI-friendly repository layout
+- Centralized environment handling
+- Documentation for deployment, API, env, FAQ, and project structure
+
+---
+
+## Built-in routes
+
+### Pages
+
+| Route          | Purpose                         |
+| -------------- | ------------------------------- |
+| `/`            | Landing page / app entry        |
+| `/login`       | Email verification login        |
+| `/pricing`     | Product list and checkout entry |
+| `/pay/success` | Payment success page            |
+| `/pay/cancel`  | Payment cancellation page       |
+
+### API routes
+
+| Method | Route                    | Purpose                        |
+| ------ | ------------------------ | ------------------------------ |
+| `POST` | `/api/auth/send-code`    | Send login verification code   |
+| `POST` | `/api/auth/verify-login` | Verify code and sign in        |
+| `POST` | `/api/auth/logout`       | Logout current user            |
+| `GET`  | `/api/auth/me`           | Get current authenticated user |
+| `POST` | `/api/pay/create`        | Create hosted payment link     |
+
+---
+
+## Payment flow overview
+
+The current template already includes a basic hosted checkout flow:
+
+1. The app loads products from the payment provider
+2. The user logs in
+3. The user visits `/pricing`
+4. The user clicks **Buy now**
+5. The server creates a hosted checkout link
+6. The user is redirected to the payment page
+7. After checkout, the user returns to:
+   - `/pay/success`, or
+   - `/pay/cancel`
+
+Important: this template handles **payment initiation**, but real production fulfillment usually still needs:
+
+- order persistence
+- webhook verification
+- entitlement granting
+- subscription activation
+- billing reconciliation
+
+---
+
+## Quick start
 
 ### Prerequisites
 
-- Node.js 20+
-- A [Neon](https://neon.tech) account
-- A [Resend](https://resend.com) account (optional, for email sending)
+- Node.js `20+`
+- `pnpm`
+- PostgreSQL / Neon database
+- Optional: Resend account for email delivery
+- Optional: payment service credentials for checkout integration
 
-### Installation
+### 1) Install dependencies
 
-1. **Clone the repository**
-```bash
-git clone <your-repo-url>
-cd remix-neon-auth
-```
-
-2. **Install dependencies**
 ```bash
 pnpm install
 ```
 
-3. **Configure environment variables**
+### 2) Copy environment variables
+
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env` with your credentials:
+### 3) Configure minimum local environment
+
+At minimum, configure:
+
 ```env
-DATABASE_URL=postgresql://user:password@host/db?sslmode=require
-JWT_SECRET=your-super-secret-jwt-key-change-in-production
-RESEND_API_KEY=your_resend_api_key  # Optional
+DATABASE_URL=postgresql://user:password@host:5432/dbname?sslmode=require
+JWT_SECRET=replace-with-a-long-random-secret
 APP_URL=http://localhost:5173
 ```
 
-4. **Set up the database**
+Optional email:
+
+```env
+RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+Optional payment:
+
+```env
+PAY_BASE_URL=https://pay.d1v.ai/api
+PAY_API_TOKEN=your_payment_api_token
+PAY_SUCCESS_URL=http://localhost:5173/pay/success
+PAY_CANCEL_URL=http://localhost:5173/pay/cancel
+```
+
+### 4) Run database migration
+
+Preferred workflow:
+
+```bash
+pnpm run db:migrate:api
+```
+
+If you intentionally want direct DB mode:
+
 ```bash
 pnpm run db:migrate
 ```
 
-5. **Start the development server**
+### 5) Start development server
+
 ```bash
 pnpm run dev
 ```
 
-Visit [http://localhost:5173](http://localhost:5173)
-
-## 📁 Project Structure
-
-```
-remix-neon-auth/
-├── app/
-│   ├── db/
-│   │   ├── db.server.ts          # Database connection
-│   │   └── schema.ts             # Drizzle schema
-│   ├── routes/
-│   │   ├── _index.tsx            # Home page
-│   │   ├── login.tsx             # Login page
-│   │   └── api.auth.*.ts         # API routes
-│   ├── services/
-│   │   ├── verification.server.ts # Email verification logic
-│   │   └── jwt.server.ts         # JWT token handling
-│   ├── utils/
-│   │   ├── auth.server.ts        # Authentication utilities
-│   │   └── env.server.ts         # Environment validation
-│   ├── tailwind.css              # Tailwind styles
-│   ├── entry.client.tsx
-│   ├── entry.server.tsx
-│   └── root.tsx
-├── drizzle/
-│   ├── 0000_init.sql             # Database migration
-│   └── meta/
-│       └── _journal.json         # Migration journal
-├── public/                        # Static assets
-├── .env.example                   # Environment template
-├── package.json
-├── tailwind.config.ts
-├── drizzle.config.ts
-└── README.md
-```
-
-## 🔌 API Endpoints
-
-### Authentication
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/auth/send-code` | Send verification code |
-| `POST` | `/api/auth/verify-login` | Verify code & login |
-| `POST` | `/api/auth/logout` | Logout user |
-| `GET` | `/api/auth/me` | Get current user |
-
-### Request/Response Examples
-
-**Send Verification Code**
-```bash
-POST /api/auth/send-code
-Content-Type: application/json
-
-{
-  "email": "user@example.com"
-}
-```
-
-**Verify Login**
-```bash
-POST /api/auth/verify-login
-Content-Type: application/json
-
-{
-  "email": "user@example.com",
-  "code": "123456"
-}
-```
-
-## 🎨 Customization
-
-### Styling
-
-The template uses Tailwind CSS. Customize the design in:
-
-- `tailwind.config.ts` - Tailwind configuration
-- `app/tailwind.css` - Custom styles
-- Component className attributes
-
-### Email Template
-
-Customize the verification email in `app/services/verification.server.ts`:
-
-```typescript
-const result = await resend.emails.send({
-  from: "Your App <auth@yourdomain.com>",  // Update this
-  to: [email],
-  subject: "Your verification code",
-  html: `...`  // Customize HTML template
-});
-```
-
-### Database Schema
-
-Add tables in `app/db/schema.ts`:
-
-```typescript
-export const yourTable = pgTable('your_table', {
-  // ... columns
-});
-```
-
-Then create a new migration:
-```bash
-cp drizzle/0000_init.sql drizzle/0001_new_feature.sql
-# Edit the new migration file
-pnpm run db:migrate
-```
-
-## 🛠️ Available Scripts
+### 6) Type check after changes
 
 ```bash
-pnpm run dev          # Start development server
-pnpm run build        # Build for production
-pnpm run start        # Start production server
-pnpm run typecheck    # Run TypeScript type checks (no emit)
-pnpm run typecheck:watch  # Watch mode type checks
-pnpm run lint         # Run ESLint
-
-pnpm run db:migrate   # Apply database migrations
-pnpm run db:migrate:api  # Apply migrations via Neon API
-pnpm run db:seed      # Seed database with demo data
-pnpm run db:seed:api  # Seed database via Neon API
+pnpm run typecheck
 ```
 
-## 🗃️ Database: API Mode (Default)
+---
 
-This template defaults to applying migrations and seed via a backend API to avoid exposing `DATABASE_URL` to Node processes. Prefer the `:api` scripts unless you explicitly need direct DB access.
+## Database workflow
 
-- Default (recommended): `db:migrate:api`, `db:seed:api`
-- Direct DB (optional): `db:migrate`, `db:seed` (requires `DATABASE_URL`)
+This repository defaults to **API-based migration mode**.
 
-Note for AI assistants: Use the `:api` scripts by default.
+### Recommended
 
-### Migrate via API (default)
-
-Required env:
-- `PROJECT_ID` — target project id
-- One of: `OPCODE_API_BASE` (e.g. `http://localhost:9191/api`) or `BACKEND_ADMIN_API_BASE`
-- `AUTH_TOKEN` (Bearer token), or pass a token at runtime
-
-Optional env:
-- `MIGRATIONS_FOLDER` — defaults to `drizzle`
-
-Examples:
 ```bash
-# Using a token file
-PROJECT_ID=your_project_id \
-OPCODE_API_BASE=http://localhost:9191/api \
-pnpm run db:migrate:api -- --token-file ./dev.token
-
-# Or pipe token from env/command
-echo "$AUTH_TOKEN" | PROJECT_ID=your_project_id \
-OPCODE_API_BASE=http://localhost:9191/api \
-pnpm run -s db:migrate:api
-
-# Custom migrations folder
-MIGRATIONS_FOLDER=drizzle \
-PROJECT_ID=your_project_id \
-OPCODE_API_BASE=http://localhost:9191/api \
-echo "$AUTH_TOKEN" | pnpm run -s db:migrate:api
+pnpm run db:migrate:api
+pnpm run db:seed:api
 ```
 
-### Seed via API (default)
-
-Required env:
-- `PROJECT_ID`
-- `OPCODE_API_BASE` (e.g. `http://localhost:9191/api`)
-- `AUTH_TOKEN` (Bearer token), or pass a token at runtime
-
-Optional env:
-- `SEED_FILE` — defaults to `drizzle/0001_init.sql`
-
-Examples:
-```bash
-# Using a token file
-PROJECT_ID=your_project_id \
-OPCODE_API_BASE=http://localhost:9191/api \
-pnpm run db:seed:api -- --token-file ./dev.token
-
-# Or pipe token from env/command
-echo "$AUTH_TOKEN" | PROJECT_ID=your_project_id \
-OPCODE_API_BASE=http://localhost:9191/api \
-pnpm run -s db:seed:api
-
-# Custom seed file
-SEED_FILE=drizzle/0001_init.sql \
-PROJECT_ID=your_project_id \
-OPCODE_API_BASE=http://localhost:9191/api \
-echo "$AUTH_TOKEN" | pnpm run -s db:seed:api
-```
-
-### Direct DB mode (optional)
-
-If you prefer direct DB execution (local/dev), set `DATABASE_URL` in `.env` and run:
+### Optional direct DB mode
 
 ```bash
 pnpm run db:migrate
 pnpm run db:seed
 ```
 
-Direct mode executes SQL against your database from the Node process. Use with care in shared environments.
+### Why API mode is preferred
 
-## 🔎 Type Checking
+It helps avoid exposing raw database credentials to every local or automation process and aligns better with managed deployment workflows.
 
-To maintain reliability, always run a type check after making changes and fix any reported issues before committing.
+### API mode environment
 
-```bash
-pnpm run typecheck
-```
+Required:
 
-- Use `pnpm run typecheck:watch` during development to continuously catch type errors.
-- Type checks do not emit build output; Vite handles builds separately.
+- `PROJECT_ID`
+- `OPCODE_API_BASE` or `BACKEND_ADMIN_API_BASE`
+- `AUTH_TOKEN`
 
-## 🚢 Deployment
+Optional:
 
-### Vercel
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=YOUR_REPO_URL)
-
-1. Push your code to GitHub
-2. Import to Vercel
-3. Add environment variables in Vercel dashboard
-4. Deploy!
-
-### Netlify
-
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/YOUR_USERNAME/remix-neon-auth)
-
-### Docker
-
-```dockerfile
-FROM node:20-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN pnpm install
-COPY . .
-RUN pnpm run build
-EXPOSE 3000
-CMD ["pnpm", "start"]
-```
-
-## 🔒 Security Considerations
-
-- ✅ JWT tokens are stored in HTTP-only cookies
-- ✅ Passwordless authentication (no password storage)
-- ✅ Verification codes expire after 10 minutes
-- ✅ One-time use verification codes
-- ✅ Secure cookie settings (SameSite, Secure in production)
-- ✅ Environment variables for sensitive data
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-### Development Workflow
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make changes
-4. Run type checks and fix issues: `pnpm run typecheck`
-5. Lint/format if needed: `pnpm run lint && pnpm run format`
-6. Commit your changes (`git commit -m 'Add amazing feature'`)
-7. Push to the branch (`git push origin feature/amazing-feature`)
-8. Open a Pull Request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- [Remix](https://remix.run/) - The full-stack web framework
-- [Neon](https://neon.tech/) - Serverless PostgreSQL
-- [Drizzle](https://orm.drizzle.team/) - TypeScript ORM
-- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS
-- [Resend](https://resend.com/) - Email API
-
-## 📚 Resources
-
-- [Remix Documentation](https://remix.run/docs)
-- [Neon Documentation](https://neon.tech/docs)
-- [Drizzle Documentation](https://orm.drizzle.team/docs)
-- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
-- [JWT.io](https://jwt.io/) - JWT debugger
+- `MIGRATIONS_FOLDER`
+- `SEED_FILE`
 
 ---
 
-<div align="center">
+## Environment variables
 
-**Built with ❤️ using Remix + Neon**
+### Core
 
-[Report Bug](https://github.com/YOUR_USERNAME/remix-neon-auth/issues) • [Request Feature](https://github.com/YOUR_USERNAME/remix-neon-auth/issues)
+- `DATABASE_URL`
+- `JWT_SECRET`
+- `APP_URL`
+- `NODE_ENV`
+- `LOG_LEVEL`
 
-</div>
+### Email
+
+- `RESEND_API_KEY`
+
+### Payment
+
+- `PAY_BASE_URL`
+- `PAY_API_TOKEN`
+- `PAY_SUCCESS_URL`
+- `PAY_CANCEL_URL`
+
+For full details, see:
+
+- `docs/ENVIRONMENT.md`
+
+---
+
+## Available scripts
+
+```bash
+pnpm run dev
+pnpm run build
+pnpm run start
+
+pnpm run typecheck
+pnpm run typecheck:watch
+
+pnpm run lint
+pnpm run lint:fix
+
+pnpm run format
+pnpm run format:fix
+
+pnpm run db:migrate
+pnpm run db:migrate:api
+pnpm run db:seed
+pnpm run db:seed:api
+```
+
+---
+
+## AI deployment platform usage
+
+This template is especially suitable for an AI-driven application deployment platform.
+
+### Recommended platform responsibilities
+
+Your platform should ideally:
+
+1. Clone or generate from this template
+2. Update branding, copy, schema, and business logic
+3. Inject environment variables securely
+4. Run migrations
+5. Run type checks
+6. Build and deploy the Remix app
+7. Validate auth and payment flows
+
+### Recommended platform-managed values
+
+- `APP_URL`
+- `JWT_SECRET`
+- `DATABASE_URL`
+- `RESEND_API_KEY` when email is enabled
+- `PAY_BASE_URL` and `PAY_API_TOKEN` when payment is enabled
+- payment success/cancel URLs when custom domains are used
+
+### Why this template works well for AI
+
+- Predictable route structure
+- Centralized service layer
+- Explicit env management
+- Minimal hidden conventions
+- Docs written for extension and deployment
+
+---
+
+## Project structure
+
+```text
+remix-neon-auth-template/
+├── app/
+│   ├── components/
+│   ├── constants/
+│   ├── db/
+│   ├── routes/
+│   │   ├── _index.tsx
+│   │   ├── login.tsx
+│   │   ├── pricing.tsx
+│   │   ├── pay.success.tsx
+│   │   ├── pay.cancel.tsx
+│   │   ├── api.auth.send-code.ts
+│   │   ├── api.auth.verify-login.ts
+│   │   ├── api.auth.logout.ts
+│   │   ├── api.auth.me.ts
+│   │   └── api.pay.create.ts
+│   ├── services/
+│   │   ├── jwt.server.ts
+│   │   ├── verification.server.ts
+│   │   └── payment.server.ts
+│   ├── utils/
+│   │   ├── auth.server.ts
+│   │   ├── env.server.ts
+│   │   └── logger.server.ts
+│   ├── entry.client.tsx
+│   ├── entry.server.tsx
+│   ├── root.tsx
+│   └── tailwind.css
+├── docs/
+├── drizzle/
+├── public/
+├── scripts/
+├── AGENTS.md
+├── package.json
+└── README.md
+```
+
+For more detail, see:
+
+- `docs/PROJECT_STRUCTURE.md`
+
+---
+
+## Deployment
+
+### Standard app deployment flow
+
+1. Set environment variables
+2. Run migrations
+3. Run type check
+4. Build the app
+5. Start the app
+6. Verify login and payment flows
+
+### Build
+
+```bash
+pnpm run build
+```
+
+### Start
+
+```bash
+pnpm run start
+```
+
+### Production checks
+
+Before considering deployment complete, verify:
+
+- homepage loads
+- login works
+- verification email flow works
+- `/pricing` loads products
+- checkout link creation works
+- success redirect works
+- cancel redirect works
+- environment warnings are resolved
+- type check passes
+
+For more detail, see:
+
+- `docs/DEPLOYMENT.md`
+
+---
+
+## What to customize first
+
+If you are adapting this template into a real product, the usual first changes are:
+
+1. App name and branding
+2. Homepage copy
+3. Login UX details
+4. Database schema for business data
+5. Pricing presentation
+6. Post-payment fulfillment logic
+7. Dashboard / protected areas
+8. Documentation for the generated project
+
+---
+
+## Recommended next payment improvements
+
+The current integration is a strong starting point, but most production apps should eventually add:
+
+- webhook verification
+- order table
+- subscription table
+- entitlement management
+- transaction history UI
+- retry-safe fulfillment
+- admin billing visibility
+
+---
+
+## Documentation index
+
+- `docs/API.md` — API behavior and examples
+- `docs/ENVIRONMENT.md` — environment variable reference
+- `docs/DEPLOYMENT.md` — deployment and operational guide
+- `docs/FAQ.md` — common questions and troubleshooting
+- `docs/PROJECT_STRUCTURE.md` — repository architecture
+- `docs/CONTRIBUTING.md` — contribution conventions
+
+---
+
+## Security notes
+
+- Never commit real secrets
+- Keep `DATABASE_URL` server-side
+- Keep `JWT_SECRET` private
+- Keep `PAY_API_TOKEN` server-side only
+- Keep return URLs aligned with the deployed domain
+- Treat redirect pages as UX only, not as full payment verification
+
+---
+
+## Final summary
+
+This repository gives you a practical foundation for:
+
+- auth-enabled apps
+- payment-enabled apps
+- AI-generated app delivery
+- platform-managed deployments
+
+It is intentionally structured so that both **engineers** and **AI systems** can understand it quickly, modify it safely, and deploy it predictably.
+
+If you are using this as a base template, the simplest mindset is:
+
+**keep the template stable, inject configuration through the platform, and let AI customize the business layer on top.**

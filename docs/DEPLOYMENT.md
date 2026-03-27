@@ -1,577 +1,576 @@
 # Deployment Guide
 
-This guide covers deploying the Remix + Neon Email Authentication Template to various platforms.
+This guide explains how to deploy the Remix template in a way that works well with your AI-driven one-click application deployment platform, while also covering the newly added Payment Hub integration.
 
 ## Table of Contents
 
-- [Prerequisites](#prerequisites)
-- [Vercel](#vercel)
-- [Netlify](#netlify)
-- [Railway](#railway)
-- [Fly.io](#flyio)
-- [Docker](#docker)
-- [Environment Variables](#environment-variables)
+- [Overview](#overview)
+- [Deployment Modes](#deployment-modes)
+- [Recommended Platform Workflow](#recommended-platform-workflow)
+- [Required Environment Variables](#required-environment-variables)
+- [Payment Setup](#payment-setup)
 - [Database Setup](#database-setup)
-- [Domain Configuration](#domain-configuration)
+- [Build and Runtime](#build-and-runtime)
+- [Post-Deployment Checklist](#post-deployment-checklist)
+- [Platform-Specific Notes](#platform-specific-notes)
+- [Troubleshooting](#troubleshooting)
 
 ---
 
-## Prerequisites
+## Overview
 
-Before deploying, ensure you have:
+This project is a **template application** designed to be consumed by your AI deployment platform.
 
-1. ✅ A Neon account with a created database
-2. ✅ A Resend account (for email functionality)
-3. ✅ Your code pushed to a Git repository
-4. ✅ Environment variables configured
+A typical workflow looks like this:
 
----
+1. The AI reads this template repository.
+2. It customizes the app based on the target business scenario.
+3. The platform injects environment variables.
+4. The platform runs database migration and optional seed tasks.
+5. The app is deployed as a Remix server application.
+6. Payment-related pages and APIs are connected to your Payment Hub service.
 
-## Vercel
-
-### Option 1: Deploy via Vercel CLI
-
-1. **Install Vercel CLI**
-```bash
-npm i -g vercel
-```
-
-2. **Login to Vercel**
-```bash
-vercel login
-```
-
-3. **Deploy**
-```bash
-vercel
-```
-
-4. **Add Environment Variables**
-```bash
-vercel env add DATABASE_URL
-vercel env add JWT_SECRET
-vercel env add RESEND_API_KEY
-```
-
-### Option 2: Deploy via GitHub
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone)
-
-1. Push your code to GitHub
-2. Click the "Deploy with Vercel" button above
-3. Import your repository
-4. Add environment variables in the dashboard
-5. Deploy!
-
-### Vercel Configuration
-
-Create `vercel.json`:
-
-```json
-{
-  "buildCommand": "npm run build",
-  "outputDirectory": "build",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
-  "framework": "remix"
-}
-```
-
-### Database Migration on Vercel
-
-Option A: Run migrations locally before deploying
-```bash
-npm run db:migrate
-git add .
-git commit -m "Apply database migrations"
-git push
-```
-
-Option B: Create a Vercel Build Hook
-1. Go to Settings → Git
-2. Create a Deploy Hook
-3. Name it `database-migrate`
-4. Call the hook URL in your CI/CD pipeline before deployment
+In other words, this repository is not just a demo app. It is meant to act as a **base template** for generating real projects on your deployment platform.
 
 ---
 
-## Netlify
+## Deployment Modes
 
-### Deploy via GitHub
+There are two practical deployment modes for this template.
 
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/YOUR_USERNAME/remix-neon-auth)
+### 1. AI Platform Deployment (Recommended)
 
-1. Push code to GitHub
-2. Click "Deploy to Netlify"
-3. Configure build settings:
-   - **Build command**: `npm run build`
-   - **Publish directory**: `build`
-4. Add environment variables
-5. Deploy!
+Use this mode when your internal AI platform is responsible for:
 
-### Netlify Configuration
+- creating the project
+- writing environment variables
+- running migrations
+- deploying the app
+- connecting external services such as email and payment
 
-Create `netlify.toml`:
+This is the **recommended mode** for this repository.
 
-```toml
-[build]
-  command = "npm run build"
-  publish = "build"
+### 2. Standard Manual Deployment
 
-[build.environment]
-  NODE_VERSION = "20"
+Use this mode when deploying manually to a generic Node.js hosting platform such as:
 
-[[redirects]]
-  from = "/*"
-  to = "/build/client/index.js"
-  status = 200
-```
+- Vercel
+- Railway
+- Fly.io
+- Docker-based infrastructure
+- self-hosted Node.js servers
 
-### Edge Functions (Alternative)
-
-Netlify now supports Edge Functions with Remix. Check their documentation for edge deployment.
+The manual mode works too, but this template is optimized for automated provisioning.
 
 ---
 
-## Railway
+## Recommended Platform Workflow
 
-### Deploy via Railway CLI
+For your AI deployment platform, the recommended deployment sequence is:
 
-1. **Install Railway CLI**
-```bash
-npm install -g @railway/cli
-```
+### Step 1: Provision environment variables
 
-2. **Login**
-```bash
-railway login
-```
+At minimum, configure:
 
-3. **Initialize**
-```bash
-railway init
-```
+- database connection
+- JWT secret
+- app public URL
+- optional email service
+- payment service settings
 
-4. **Deploy**
-```bash
-railway up
-```
+### Step 2: Run database migrations
 
-5. **Add Environment Variables**
-```bash
-railway variables set DATABASE_URL=your_db_url
-railway variables set JWT_SECRET=your_secret
-```
+Prefer the API-based migration flow:
 
-### Deploy via GitHub
+- `pnpm run db:migrate:api`
 
-1. Push to GitHub
-2. Visit [railway.app](https://railway.app)
-3. "Deploy from GitHub repo"
-4. Select your repository
-5. Add environment variables in dashboard
+Do not default to direct database migration scripts unless your workflow explicitly requires direct database access.
+
+### Step 3: Optionally seed initial data
+
+If your generated app needs default data, run:
+
+- `pnpm run db:seed:api`
+
+### Step 4: Build the Remix app
+
+Run:
+
+- `pnpm run build`
+
+### Step 5: Start the production server
+
+Run:
+
+- `pnpm run start`
+
+### Step 6: Verify payment flow
+
+After deployment, confirm that:
+
+- `/pricing` loads products correctly
+- authenticated users can create checkout links
+- success and cancel redirects work
+- the payment API token is valid
+- the public app URL matches callback expectations
 
 ---
 
-## Fly.io
+## Required Environment Variables
 
-### 1. Install flyctl
+The following variables matter during deployment.
 
-```bash
-# macOS
-brew install flyctl
+### Core application variables
 
-# Windows (PowerShell)
-iwr https://fly.io/install.ps1 -useb | iex
+#### `DATABASE_URL`
 
-# Linux
-curl -L https://fly.io/install.sh | sh
+PostgreSQL connection string used by the app and direct DB workflows.
+
+Example:
+
+```env
+DATABASE_URL=postgresql://user:password@host:5432/dbname?sslmode=require
 ```
 
-### 2. Login
+#### `JWT_SECRET`
 
-```bash
-flyctl auth login
+Secret used to sign and verify JWTs.
+
+Requirements:
+
+- use a strong random secret
+- use different values per environment
+- never commit it to the repository
+
+Example:
+
+```env
+JWT_SECRET=replace-with-a-long-random-secret
 ```
 
-### 3. Launch App
+#### `APP_URL`
 
-```bash
-flyctl launch
+Public base URL of the deployed application.
+
+This value is important because it is used to derive default payment return URLs.
+
+Example:
+
+```env
+APP_URL=https://your-app.example.com
 ```
 
-### 4. Add Secrets
+#### `NODE_ENV`
 
-```bash
-flyctl secrets set DATABASE_URL=your_db_url
-flyctl secrets set JWT_SECRET=your_secret
-flyctl secrets set RESEND_API_KEY=your_api_key
+Runtime mode.
+
+Typical value in production:
+
+```env
+NODE_ENV=production
 ```
 
-### 5. Deploy
+#### `LOG_LEVEL`
 
-```bash
-flyctl deploy
+Optional log verbosity.
+
+Example:
+
+```env
+LOG_LEVEL=info
 ```
 
-### fly.toml
+### Email-related variable
 
-```toml
-app = "remix-neon-auth"
-primary_region = "iad"
+#### `RESEND_API_KEY`
 
-[build]
-  builder = "heroku/buildpacks:20"
+Optional, but recommended in production if you want real verification emails to be sent.
 
-[env]
-  NODE_ENV = "production"
-  PORT = "8080"
+If not set, local or server-side development flows may fall back to console logging behavior depending on implementation.
 
-[http_service]
-  internal_port = 8080
-  force_https = true
-  auto_stop_machines = true
-  auto_start_machines = true
-  min_machines_running = 0
-  processes = ["app"]
+Example:
+
+```env
+RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
 ---
 
-## Docker
+## Payment Setup
 
-### Dockerfile
+This template now includes payment integration through your payment service.
 
-```dockerfile
-# Build stage
-FROM node:20-alpine AS builder
+### Payment-related variables
 
-WORKDIR /app
+#### `PAY_BASE_URL`
 
-# Copy package files
-COPY package*.json ./
-RUN npm ci
+Base URL of the payment service API.
 
-# Copy source code
-COPY . .
+Default behavior in code expects an API base such as:
 
-# Build application
-RUN npm run build
-
-# Production stage
-FROM node:20-alpine AS runner
-
-WORKDIR /app
-
-# Create non-root user
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 remix
-
-# Copy package files
-COPY package*.json ./
-RUN npm ci --only=production && npm cache clean --force
-
-# Copy built application
-COPY --from=builder --chown=remix:nodejs /app/build ./build
-COPY --from=builder --chown=remix:nodejs /app/public ./public
-COPY --from=builder --chown=remix:nodejs /app/node_modules ./node_modules
-
-USER remix
-
-EXPOSE 3000
-
-ENV NODE_ENV=production
-
-CMD ["npm", "start"]
+```env
+PAY_BASE_URL=https://pay.d1v.ai/api
 ```
 
-### Docker Compose
+#### `PAY_API_TOKEN`
 
-```yaml
-version: '3.8'
+Bearer token used by the server to access the payment API.
 
-services:
-  app:
-    build: .
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
-      - DATABASE_URL=${DATABASE_URL}
-      - JWT_SECRET=${JWT_SECRET}
-      - RESEND_API_KEY=${RESEND_API_KEY}
-    restart: unless-stopped
+Example:
 
-  nginx:
-    image: nginx:alpine
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
-      - ./ssl:/etc/ssl/certs
-    depends_on:
-      - app
-    restart: unless-stopped
+```env
+PAY_API_TOKEN=replace-with-server-side-payment-token
 ```
 
-### Build and Run
+#### `PAY_SUCCESS_URL`
 
-```bash
-# Build
-docker build -t remix-neon-auth .
+Optional explicit success callback URL.
 
-# Run
-docker run -p 3000:3000 \
-  -e DATABASE_URL=your_db_url \
-  -e JWT_SECRET=your_secret \
-  -e RESEND_API_KEY=your_api_key \
-  remix-neon-auth
+If not set, the app falls back to:
+
+- `APP_URL/pay/success`
+
+Example:
+
+```env
+PAY_SUCCESS_URL=https://your-app.example.com/pay/success
 ```
 
----
+#### `PAY_CANCEL_URL`
 
-## Environment Variables
+Optional explicit cancel callback URL.
 
-### Required Variables
+If not set, the app falls back to:
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `DATABASE_URL` | Neon PostgreSQL connection string | `postgresql://user:pass@host/db?sslmode=require` |
-| `JWT_SECRET` | Secret key for JWT tokens | `your-super-secret-key-32-chars-min` |
-| `RESEND_API_KEY` | Resend API key for emails | `re_xxxxxxxxxxxxxxxxxxxxxxxxxx` |
+- `APP_URL/pay/cancel`
 
-### Optional Variables
+Example:
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `APP_URL` | Your application URL | `http://localhost:5173` |
-| `NODE_ENV` | Environment mode | `development` |
-| `LOG_LEVEL` | Logging level | `info` |
-
-### Setting Environment Variables
-
-#### Vercel
-```bash
-vercel env add VARIABLE_NAME
+```env
+PAY_CANCEL_URL=https://your-app.example.com/pay/cancel
 ```
 
-#### Netlify
-Site Settings → Environment Variables → Add variable
+### What the payment integration does
 
-#### Railway
-```bash
-railway variables set VARIABLE_NAME=value
-```
+The current implementation adds:
 
-#### Fly.io
-```bash
-flyctl secrets set VARIABLE_NAME=value
-```
+- a pricing page at `/pricing`
+- a server API endpoint at `/api/pay/create`
+- a success page at `/pay/success`
+- a cancel page at `/pay/cancel`
+- a payment service wrapper for the remote payment API
 
-#### Docker (docker-compose.yml)
-```yaml
-environment:
-  - VARIABLE_NAME=value
-```
+### Payment flow
+
+The deployed flow works like this:
+
+1. The app loads products from the payment service.
+2. A logged-in user clicks a purchase button on `/pricing`.
+3. The server creates a hosted checkout link through the payment API.
+4. The user is redirected to the hosted checkout page.
+5. After checkout, the payment platform redirects back to:
+   - `/pay/success`, or
+   - `/pay/cancel`
+
+### Deployment requirements for payment
+
+To make payment work in production:
+
+- `PAY_BASE_URL` must point to the correct payment API
+- `PAY_API_TOKEN` must be valid
+- `APP_URL` must match the real public domain
+- success and cancel URLs must be reachable from the payment provider
+- outbound server requests to the payment API must be allowed by your infrastructure
+
+### Important security notes
+
+- Never expose `PAY_API_TOKEN` to the client.
+- Only configure it as a server-side environment variable.
+- Do not hardcode payment tokens in source code.
+- Keep return URLs aligned with the deployed domain to avoid broken redirects.
 
 ---
 
 ## Database Setup
 
-### Create Database on Neon
+This repository supports two database workflows.
 
-1. Sign up at [neon.tech](https://neon.tech)
-2. Create a new project
-3. Copy the connection string from Settings → Connection String
-4. Use the connection string as `DATABASE_URL`
+### API mode (default)
 
-### Run Migrations
+Preferred for automated deployments.
 
-#### Local Development
-```bash
-npm run db:migrate
-```
+Use:
 
-#### Production (via API)
-```bash
-npm run db:migrate:api
-```
+- `pnpm run db:migrate:api`
+- `pnpm run db:seed:api`
 
-**Important**: For production, prefer using `db:migrate:api` which uses Neon's secure API instead of exposing the DATABASE_URL.
+Required environment for API mode:
 
----
+- `PROJECT_ID`
+- `OPCODE_API_BASE` or `BACKEND_ADMIN_API_BASE`
+- `AUTH_TOKEN`
 
-## Domain Configuration
+Optional:
 
-### Custom Domain
+- `MIGRATIONS_FOLDER`
+- `SEED_FILE`
 
-1. **Add Domain to Platform**
-   - Vercel: Settings → Domains
-   - Netlify: Domain settings
-   - Railway: Settings → Domains
+This mode is recommended because it avoids passing the direct database connection into every migration execution context.
 
-2. **Update DNS Records**
-   ```
-   Type: CNAME
-   Name: www
-   Value: your-app.vercel.app
+### Direct DB mode
 
-   Type: A
-   Name: @
-   Value: [IP from platform]
-   ```
+Use only when explicitly needed.
 
-3. **Update Environment Variables**
-   ```env
-   APP_URL=https://your-domain.com
-   ```
+Commands:
 
-### SSL/TLS
+- `pnpm run db:migrate`
+- `pnpm run db:seed`
 
-Most platforms (Vercel, Netlify, Railway, Fly.io) automatically provision SSL certificates via Let's Encrypt. No additional configuration needed.
+This mode requires `DATABASE_URL` to be available to the process.
 
-### Email Domain (Resend)
+### Recommendation for AI platform deployments
 
-1. In Resend Dashboard, go to "Domains"
-2. Add your domain
-3. Configure DNS records as shown:
-   ```
-   Type: TXT
-   Name: _resend
-   Value: [value from Resend]
+For your one-click deployment platform, prefer this sequence:
 
-   Type: MX
-   Name: @
-   Value: feedback-smtp.us-east-1.amazonses.com
-   Priority: 10
+1. provision `PROJECT_ID`
+2. provision backend admin/API endpoint
+3. provision auth token securely
+4. run `db:migrate:api`
+5. optionally run `db:seed:api`
 
-   Type: TXT
-   Name: @
-   Value: v=spf1 include:amazonses.com ~all
-
-   Type: CNAME
-   Name: [random]._domainkey
-   Value: [random].dkim.amazonses.com
-   ```
+This keeps the workflow safer and more consistent with the template conventions.
 
 ---
 
-## Monitoring & Logs
+## Build and Runtime
+
+### Install dependencies
+
+Recommended package manager:
+
+- `pnpm`
+
+Command:
+
+```bash
+pnpm install
+```
+
+### Build
+
+```bash
+pnpm run build
+```
+
+### Start
+
+```bash
+pnpm run start
+```
+
+### Type checking
+
+After any generated or manual code change, run:
+
+```bash
+pnpm run typecheck
+```
+
+Type errors should be treated as deployment blockers.
+
+### Runtime expectation
+
+This app is a server-rendered Remix application and expects:
+
+- Node.js 20+
+- access to required server-side environment variables
+- a reachable PostgreSQL database
+- optional access to Resend
+- access to the payment API if payment is enabled
+
+---
+
+## Post-Deployment Checklist
+
+After deployment, verify the following:
+
+### Core app
+
+- [ ] The home page loads
+- [ ] Login works
+- [ ] Verification email flow works
+- [ ] Authenticated session is preserved correctly
+
+### Database
+
+- [ ] Database migrations completed successfully
+- [ ] Required tables exist
+- [ ] Seed data exists if expected
+
+### Payment
+
+- [ ] `/pricing` renders without server errors
+- [ ] Product list is returned from the payment API
+- [ ] Clicking purchase creates a checkout link
+- [ ] Hosted checkout opens successfully
+- [ ] Success redirect lands on `/pay/success`
+- [ ] Cancel redirect lands on `/pay/cancel`
+
+### Configuration
+
+- [ ] `APP_URL` matches the actual production domain
+- [ ] `PAY_SUCCESS_URL` and `PAY_CANCEL_URL` are correct if overridden
+- [ ] `PAY_API_TOKEN` is set only on the server
+- [ ] `JWT_SECRET` is unique and secure in production
+
+---
+
+## Platform-Specific Notes
+
+## AI Deployment Platform
+
+This template is especially suitable for an AI-driven deployment platform that:
+
+- clones the template
+- modifies branding, copy, and business logic
+- injects environment variables from a control plane
+- runs migration jobs automatically
+- deploys the built Remix server
+- wires external services like payment and email
+
+Recommended platform responsibilities:
+
+- generate a strong `JWT_SECRET`
+- set `APP_URL` automatically from the assigned domain
+- inject payment configuration only for projects that enable payments
+- validate required env vars before build
+- run `pnpm run typecheck` before final deployment
+- run database API-mode migrations as part of provisioning
 
 ### Vercel
-```bash
-vercel logs
-```
+
+If deploying to Vercel manually:
+
+- set all environment variables in the project settings
+- ensure the server runtime can reach the database and payment API
+- verify that the deployed domain is reflected in `APP_URL`
 
 ### Railway
-```bash
-railway logs
-```
+
+Railway is a good fit for this app because it supports long-lived Node services and environment variables easily.
+
+Be sure to:
+
+- configure `APP_URL` to the actual Railway public domain or custom domain
+- set payment env vars in the service settings
+- run migration jobs before exposing the app
 
 ### Fly.io
-```bash
-flyctl logs
-```
 
-### Docker
-```bash
-docker logs -f container_name
-```
+Fly.io works well if you want more control over runtime networking.
+
+Be sure to:
+
+- expose the correct HTTP port
+- configure secrets through Fly
+- confirm outbound connectivity to payment and email services
+
+### Docker / Self-Hosted
+
+For container deployments:
+
+- inject env vars at runtime, not in the image
+- run migrations as a separate deployment step
+- expose the Remix server port correctly
+- make sure reverse proxy settings preserve HTTPS and host headers as needed
 
 ---
 
 ## Troubleshooting
 
-### Build Fails
+### `/pricing` shows no products
 
-**Issue**: `Cannot find module '@remix-run/...'`
+Possible causes:
 
-**Solution**: Ensure all dependencies are installed
-```bash
-npm install
+- `PAY_BASE_URL` is incorrect
+- `PAY_API_TOKEN` is missing or invalid
+- the payment API is unreachable from the deployed server
+- the payment account has no active products
+
+### Payment creation fails
+
+Possible causes:
+
+- user is not authenticated
+- `productId` is missing
+- payment API returned an error
+- callback URLs are invalid
+- the payment token lacks permission
+
+### Success or cancel pages do not redirect correctly
+
+Possible causes:
+
+- `APP_URL` is wrong
+- `PAY_SUCCESS_URL` or `PAY_CANCEL_URL` points to the wrong domain
+- the payment service is configured with stale callback settings
+
+### Email login works locally but not in production
+
+Possible causes:
+
+- `RESEND_API_KEY` is missing
+- sender domain is not configured correctly
+- environment variables were not applied to the production runtime
+
+### Migration jobs fail on the platform
+
+Possible causes:
+
+- API mode variables are missing
+- project ID is wrong
+- auth token is invalid
+- the migration folder path was overridden incorrectly
+
+---
+
+## Suggested Production Defaults
+
+For most deployments, a solid baseline is:
+
+```env
+NODE_ENV=production
+APP_URL=https://your-app.example.com
+LOG_LEVEL=info
+
+DATABASE_URL=postgresql://user:password@host:5432/dbname?sslmode=require
+JWT_SECRET=replace-with-a-long-random-secret
+RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+PAY_BASE_URL=https://pay.d1v.ai/api
+PAY_API_TOKEN=replace-with-server-side-payment-token
+PAY_SUCCESS_URL=https://your-app.example.com/pay/success
+PAY_CANCEL_URL=https://your-app.example.com/pay/cancel
 ```
 
-### Database Connection Error
-
-**Issue**: `ECONNREFUSED` or similar
-
-**Solution**:
-1. Verify DATABASE_URL is correct
-2. Check Neon database is active
-3. Ensure your IP is allowed (Neon allows by default)
-
-### Email Not Sending
-
-**Issue**: Verification code not received
-
-**Solution**:
-1. Check RESEND_API_KEY is set
-2. Verify domain is verified in Resend
-3. Check spam folder
-4. In development, check server logs for the code
-
-### 500 Error
-
-**Issue**: Server error
-
-**Solution**:
-1. Check server logs
-2. Verify all environment variables are set
-3. Ensure database migrations are applied
+If you are deploying through your internal AI platform, the platform should ideally generate and inject these values automatically.
 
 ---
 
-## Performance Optimization
+## Final Recommendation
 
-### Enable Caching
+For this repository, the best production approach is:
 
-Remix has built-in caching. Add to routes:
+1. use the template as the base project for AI generation
+2. inject environment variables through the deployment platform
+3. run database tasks in API mode by default
+4. deploy the Remix server
+5. validate the payment flow on `/pricing`
+6. extend `/pay/success` with your own fulfillment logic later
 
-```typescript
-export const loader = async ({ request }: LoaderFunctionArgs) => {
-  return json(data, {
-    headers: {
-      "Cache-Control": "public, max-age=300",
-    },
-  });
-};
-```
+That gives you a clean separation between:
 
-### Database Connection Pooling
-
-Neon automatically handles connection pooling. For high traffic, consider:
-- Increasing Neon connection limits
-- Using a connection pooler like PgBouncer
-
-### CDN
-
-- Vercel: Automatically provides global CDN
-- Netlify: Enable CDN in site settings
-- Cloudflare: Use as DNS and CDN layer
-
----
-
-## Security Checklist
-
-- [ ] `JWT_SECRET` is at least 32 characters
-- [ ] `DATABASE_URL` uses SSL mode: `?sslmode=require`
-- [ ] All environment variables are set in platform dashboard
-- [ ] Custom domain configured with SSL
-- [ ] Email domain verified in Resend
-- [ ] `NODE_ENV=production` in production
-- [ ] No sensitive data in client-side code
-- [ ] Security headers configured (if using nginx/CloudFlare)
-
----
-
-## Support
-
-- 📚 [Remix Documentation](https://remix.run/docs)
-- 📚 [Neon Documentation](https://neon.tech/docs)
-- 📚 [Drizzle Documentation](https://orm.drizzle.team/docs)
-- 📧 [Resend Documentation](https://resend.com/docs)
-
----
-
-**Last Updated**: November 2024
+- template code
+- AI-generated business customization
+- platform-managed secrets
+- external services such as database, email, and payment
