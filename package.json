@@ -1,7 +1,9 @@
 {
   "type": "module",
   "sideEffects": false,
-  "name": "with-remix",
+  "name": "d1v-remix-neon-auth",
+  "private": true,
+  "description": "D1V foundation template for Remix + Neon passwordless authentication apps.",
   "scripts": {
     "build": "remix vite:build",
     "dev": "remix vite:dev",
