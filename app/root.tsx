@@ -10,7 +10,7 @@ export const links = () => [
 export const meta = () => {
   return [
     { title: APP_TITLE },
-    { name: "description", content: "Email verification login with Remix and Neon" },
+    { name: "description", content: "D1V DEMO auth showcase with Remix, Neon, and production-ready sign-in flows." },
   ];
 };
 
