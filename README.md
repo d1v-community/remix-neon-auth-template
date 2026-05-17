@@ -191,88 +191,19 @@ pnpm run typecheck:watch  # Watch mode type checks
 pnpm run lint         # Run ESLint
 
 pnpm run db:migrate   # Apply database migrations
-pnpm run db:migrate:api  # Apply migrations via Neon API
 pnpm run db:seed      # Seed database with demo data
-pnpm run db:seed:api  # Seed database via Neon API
 ```
 
-## 🗃️ Database: API Mode (Default)
+## 🗃️ Database
 
-This template defaults to applying migrations and seed via a backend API to avoid exposing `DATABASE_URL` to Node processes. Prefer the `:api` scripts unless you explicitly need direct DB access.
-
-- Default (recommended): `db:migrate:api`, `db:seed:api`
-- Direct DB (optional): `db:migrate`, `db:seed` (requires `DATABASE_URL`)
-
-Note for AI assistants: Use the `:api` scripts by default.
-
-### Migrate via API (default)
-
-Required env:
-- `PROJECT_ID` — target project id
-- One of: `OPCODE_API_BASE` (e.g. `http://localhost:9191/api`) or `BACKEND_ADMIN_API_BASE`
-- `AUTH_TOKEN` (Bearer token), or pass a token at runtime
-
-Optional env:
-- `MIGRATIONS_FOLDER` — defaults to `drizzle`
-
-Examples:
-```bash
-# Using a token file
-PROJECT_ID=your_project_id \
-OPCODE_API_BASE=http://localhost:9191/api \
-pnpm run db:migrate:api -- --token-file ./dev.token
-
-# Or pipe token from env/command
-echo "$AUTH_TOKEN" | PROJECT_ID=your_project_id \
-OPCODE_API_BASE=http://localhost:9191/api \
-pnpm run -s db:migrate:api
-
-# Custom migrations folder
-MIGRATIONS_FOLDER=drizzle \
-PROJECT_ID=your_project_id \
-OPCODE_API_BASE=http://localhost:9191/api \
-echo "$AUTH_TOKEN" | pnpm run -s db:migrate:api
-```
-
-### Seed via API (default)
-
-Required env:
-- `PROJECT_ID`
-- `OPCODE_API_BASE` (e.g. `http://localhost:9191/api`)
-- `AUTH_TOKEN` (Bearer token), or pass a token at runtime
-
-Optional env:
-- `SEED_FILE` — defaults to `drizzle/0001_init.sql`
-
-Examples:
-```bash
-# Using a token file
-PROJECT_ID=your_project_id \
-OPCODE_API_BASE=http://localhost:9191/api \
-pnpm run db:seed:api -- --token-file ./dev.token
-
-# Or pipe token from env/command
-echo "$AUTH_TOKEN" | PROJECT_ID=your_project_id \
-OPCODE_API_BASE=http://localhost:9191/api \
-pnpm run -s db:seed:api
-
-# Custom seed file
-SEED_FILE=drizzle/0001_init.sql \
-PROJECT_ID=your_project_id \
-OPCODE_API_BASE=http://localhost:9191/api \
-echo "$AUTH_TOKEN" | pnpm run -s db:seed:api
-```
-
-### Direct DB mode (optional)
-
-If you prefer direct DB execution (local/dev), set `DATABASE_URL` in `.env` and run:
+After the template has generated a project `.env`, run migrations and seed directly:
 
 ```bash
 pnpm run db:migrate
 pnpm run db:seed
 ```
 
-Direct mode executes SQL against your database from the Node process. Use with care in shared environments.
+This template now assumes local scripts read the database connection information from `.env`.
 
 ## 🔎 Type Checking
 

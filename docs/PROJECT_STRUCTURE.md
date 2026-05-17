@@ -80,9 +80,7 @@ remix-neon-auth/
 │
 ├── scripts/                     # Build & migration scripts
 │   ├── migrate.mjs              # Migration runner
-│   ├── migrate_via_api.mjs      # API-based migration
 │   ├── seed.mjs                 # Database seeder
-│   └── seed_via_api.mjs         # API-based seeder
 │
 ├── .env.example                 # Environment template
 ├── .gitignore                   # Git ignore rules

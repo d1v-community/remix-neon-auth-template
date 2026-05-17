@@ -395,10 +395,10 @@ npm run db:migrate
 
 #### Production (via API)
 ```bash
-npm run db:migrate:api
+npm run db:migrate
 ```
 
-**Important**: For production, prefer using `db:migrate:api` which uses Neon's secure API instead of exposing the DATABASE_URL.
+**Important**: For production, prefer using `db:migrate` which uses Neon's secure API instead of exposing the DATABASE_URL.
 
 ---
 

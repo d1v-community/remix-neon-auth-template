@@ -196,7 +196,7 @@ npm run db:migrate
 
 **Option 2: Via Neon API (recommended for production)**
 ```bash
-npm run db:migrate:api
+npm run db:migrate
 ```
 
 **View migrations**: Check `drizzle/` folder
