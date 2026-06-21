@@ -25,6 +25,7 @@ A production-ready starter template for building web applications with email ver
 - 🛡️ **TypeScript** - Full type safety
 - ⚡ **Drizzle ORM** - Type-safe database queries
 - 🔒 **Security First** - Secure cookie handling and token management
+- 📦 **Storage-Ready Uploads** - Optional `storage.d1v.ai` avatar/file upload integration
 
 ## 🚀 Quick Start
 
@@ -58,6 +59,16 @@ DATABASE_URL=postgresql://user:password@host/db?sslmode=require
 JWT_SECRET=your-super-secret-jwt-key-change-in-production
 RESEND_API_KEY=your_resend_api_key  # Optional
 APP_URL=http://localhost:5173
+```
+
+Optional storage integration:
+
+```env
+STORAGE_BASE_URL=https://storage.d1v.ai
+STORAGE_API_KEY=your_project_level_storage_api_key
+STORAGE_PUBLIC_BASE_URL=https://storage.d1v.ai/public/files
+STORAGE_PROJECT_ID=project_xxx
+STORAGE_PROJECT_EMAIL=project-id@d1vproject.d1v.ai
 ```
 
 4. **Set up the database**
@@ -116,6 +127,7 @@ remix-neon-auth/
 | `POST` | `/api/auth/verify-login` | Verify code & login |
 | `POST` | `/api/auth/logout` | Logout user |
 | `GET` | `/api/auth/me` | Get current user |
+| `POST` | `/api/profile/avatar` | Upload authenticated user avatar |
 
 ### Request/Response Examples
 

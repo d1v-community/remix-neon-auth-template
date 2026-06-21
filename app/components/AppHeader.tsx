@@ -6,6 +6,7 @@ export type AppHeaderUser = {
   displayName: string | null;
   username: string | null;
   email: string | null;
+  avatarUrl?: string | null;
 } | null;
 
 interface AppHeaderProps {
@@ -32,8 +33,15 @@ export function AppHeader({ user, onLogout }: AppHeaderProps) {
 
             {user ? (
               <div className="relative group">
-                <div className="text-sm text-gray-700 group-hover:text-gray-900 cursor-default dark:text-slate-200 dark:group-hover:text-white">
-                  {displayName}
+                <div className="flex items-center gap-2 text-sm text-gray-700 group-hover:text-gray-900 cursor-default dark:text-slate-200 dark:group-hover:text-white">
+                  <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-current/10 bg-white/70 text-[11px] font-semibold dark:bg-slate-900">
+                    {user.avatarUrl ? (
+                      <img src={user.avatarUrl} alt={displayName ?? "User avatar"} className="h-full w-full object-cover" />
+                    ) : (
+                      <span>{String(displayName ?? "U").slice(0, 1).toUpperCase()}</span>
+                    )}
+                  </span>
+                  <span>{displayName}</span>
                 </div>
                 <div className="absolute right-0 mt-2 hidden group-hover:block">
                   <button

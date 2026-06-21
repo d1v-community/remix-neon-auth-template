@@ -177,6 +177,55 @@ info
 
 ---
 
+### Storage Variables
+
+These variables enable the optional `storage.d1v.ai` upload demo.
+
+### `STORAGE_BASE_URL`
+
+**Description**: Base URL of the storage provider.
+
+**Example**:
+```
+https://storage.d1v.ai
+```
+
+### `STORAGE_API_KEY`
+
+**Description**: Server-side storage API key for the current project.
+
+**Example**:
+```
+sk_xxxxxxxxxxxxxxxxx
+```
+
+**Important**:
+- Keep this on the server only
+- If it is missing, upload APIs must return a clear configuration error
+
+### `STORAGE_PUBLIC_BASE_URL`
+
+**Description**: Optional public file prefix.
+
+**Example**:
+```
+https://storage.d1v.ai/public/files
+```
+
+### `STORAGE_PROJECT_ID`
+
+**Description**: Optional project identifier injected by the platform.
+
+### `STORAGE_PROJECT_EMAIL`
+
+**Description**: Optional project storage identity email.
+
+### Docs
+
+- Storage docs: `https://storage.d1v.ai/docs`
+
+---
+
 ## How to Get Each Variable
 
 ### Database URL

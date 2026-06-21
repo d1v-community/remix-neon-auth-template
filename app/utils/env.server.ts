@@ -7,6 +7,11 @@ const envSchema = z.object({
   LOG_LEVEL: z.string().default("info"),
   RESEND_API_KEY: z.string().optional(),
   JWT_SECRET: z.string().default("your-secret-key-change-in-production"),
+  STORAGE_BASE_URL: z.string().url().optional(),
+  STORAGE_API_KEY: z.string().optional(),
+  STORAGE_PROJECT_ID: z.string().optional(),
+  STORAGE_PROJECT_EMAIL: z.string().optional(),
+  STORAGE_PUBLIC_BASE_URL: z.string().url().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -32,6 +37,21 @@ export const env = {
   JWT_SECRET: parsed.success
     ? parsed.data.JWT_SECRET
     : (process.env.JWT_SECRET ?? "your-secret-key-change-in-production"),
+  STORAGE_BASE_URL: parsed.success
+    ? parsed.data.STORAGE_BASE_URL
+    : process.env.STORAGE_BASE_URL,
+  STORAGE_API_KEY: parsed.success
+    ? parsed.data.STORAGE_API_KEY
+    : process.env.STORAGE_API_KEY,
+  STORAGE_PROJECT_ID: parsed.success
+    ? parsed.data.STORAGE_PROJECT_ID
+    : process.env.STORAGE_PROJECT_ID,
+  STORAGE_PROJECT_EMAIL: parsed.success
+    ? parsed.data.STORAGE_PROJECT_EMAIL
+    : process.env.STORAGE_PROJECT_EMAIL,
+  STORAGE_PUBLIC_BASE_URL: parsed.success
+    ? parsed.data.STORAGE_PUBLIC_BASE_URL
+    : process.env.STORAGE_PUBLIC_BASE_URL,
 };
 
 export const isProd = env.NODE_ENV === "production";
@@ -54,4 +74,23 @@ export function getEnvWarningMessage(): string | null {
   return `⚠️ Missing or invalid environment variables: ${unique.join(
     ", ",
   )}. Please configure them in your deployment platform (for example, D1V Project > Chat > Env Settings Icon -> Sync or Import).`;
+}
+
+export function hasStorageConfig(): boolean {
+  return Boolean(env.STORAGE_BASE_URL && env.STORAGE_API_KEY);
+}
+
+export function getStorageConfigWarningMessage(): string | null {
+  const missing: string[] = [];
+
+  if (!env.STORAGE_BASE_URL) {
+    missing.push("STORAGE_BASE_URL");
+  }
+  if (!env.STORAGE_API_KEY) {
+    missing.push("STORAGE_API_KEY");
+  }
+
+  if (missing.length === 0) return null;
+
+  return `⚠️ Storage is not fully configured. Missing environment variables: ${missing.join(", ")}. See https://storage.d1v.ai/docs for integration details.`;
 }

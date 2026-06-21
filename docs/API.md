@@ -179,6 +179,56 @@ GET /api/auth/me
 
 ---
 
+### Upload Avatar
+
+Upload an authenticated user's avatar image through the server.
+
+```http
+POST /api/profile/avatar
+Content-Type: multipart/form-data
+```
+
+#### Form Fields
+
+- `file`: image file
+
+#### Response
+
+**Success (200)**
+
+```json
+{
+  "success": true,
+  "avatarUrl": "https://storage.d1v.ai/public/files/file_xxx",
+  "fileId": "file_xxx"
+}
+```
+
+**Error (400)**
+
+```json
+{
+  "success": false,
+  "error": "Avatar must be an image file."
+}
+```
+
+**Error (500)**
+
+```json
+{
+  "success": false,
+  "error": "Storage is not configured. Set STORAGE_BASE_URL and STORAGE_API_KEY. Docs: https://storage.d1v.ai/docs"
+}
+```
+
+#### Notes
+
+- The page should call this endpoint only after checking that storage env vars are present
+- Storage provider docs: `https://storage.d1v.ai/docs`
+
+---
+
 ## Error Codes
 
 | Code | Description |

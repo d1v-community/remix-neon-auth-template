@@ -2,10 +2,11 @@ import { useLoaderData, useNavigate } from "@remix-run/react";
 import { useEffect, useState } from "react";
 import { json, type MetaFunction, type LoaderFunctionArgs, type SerializeFrom } from "@remix-run/node";
 import { getUserFromRequest } from "~/utils/auth.server";
-import { getEnvWarningMessage } from "~/utils/env.server";
+import { getEnvWarningMessage, getStorageConfigWarningMessage, hasStorageConfig } from "~/utils/env.server";
 import { AppHeader } from "~/components/AppHeader";
 import { AppFooter } from "~/components/AppFooter";
 import { DevLoadingCard } from "~/components/DevLoadingCard";
+import { ProfileAvatarCard } from "~/components/ProfileAvatarCard";
 
 export const meta: MetaFunction = () => {
   return [
@@ -17,14 +18,15 @@ export const meta: MetaFunction = () => {
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const user = await getUserFromRequest(request);
   const envWarning = getEnvWarningMessage();
+  const storageWarning = getStorageConfigWarningMessage();
 
-  return json({ user, envWarning });
+  return json({ user, envWarning, storageEnabled: hasStorageConfig(), storageWarning });
 };
 
 type LoaderData = SerializeFrom<typeof loader>;
 
 export default function Index() {
-  const { user, envWarning } = useLoaderData<typeof loader>();
+  const { user, envWarning, storageEnabled, storageWarning } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const [clientUser, setClientUser] = useState<LoaderData["user"]>(user);
 
@@ -68,6 +70,18 @@ export default function Index() {
 
       <main className="flex-1 min-h-0">
         <DevLoadingCard />
+        {effectiveUser ? (
+          <div className="mx-auto mt-6 w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+            <ProfileAvatarCard
+              user={effectiveUser}
+              storageEnabled={storageEnabled}
+              storageWarning={storageWarning}
+              onAvatarUpdated={(nextUrl) =>
+                setClientUser((current) => (current ? { ...current, avatarUrl: nextUrl } : current))
+              }
+            />
+          </div>
+        ) : null}
       </main>
 
       <AppFooter />
